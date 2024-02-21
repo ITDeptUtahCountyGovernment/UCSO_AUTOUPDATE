@@ -1,0 +1,22 @@
+﻿$PBExportHeader$f_is_valid_date.srf
+global type f_is_valid_date from function_object
+end type
+
+forward prototypes
+global function boolean f_is_valid_date (date ld_check_date)
+end prototypes
+
+global function boolean f_is_valid_date (date ld_check_date);boolean lb_return 
+lb_return = false
+if(IsNull(ld_check_date) = false) then
+	datetime ldt_check_date
+	ldt_check_date = datetime(ld_check_date, time("00:00:00"))
+	string ls_dt_check
+	ls_dt_check = string(ldt_check_date)
+	if(pos(ls_dt_check, "1900") = 0) then
+		lb_return = true
+	end if
+end if
+return lb_return
+end function
+

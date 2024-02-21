@@ -1,0 +1,56 @@
+﻿$PBExportHeader$f_is_valid_date_format.srf
+global type f_is_valid_date_format from function_object
+end type
+
+forward prototypes
+global function boolean f_is_valid_date_format (string ls_dt_format, ref integer li_format_num)
+end prototypes
+
+global function boolean f_is_valid_date_format (string ls_dt_format, ref integer li_format_num);//valid formats				format#
+//DD-MMM-YYYY HH:MM:SS"		1
+//DD-MMM-YYYY HH:MM"		1
+//MM-DD-YYYY HH:MM:SS"		2
+//MM-DD-YYYY HH:MM"			2
+//DD/MM/YYYY HH:MM:SS"		3
+//DD/MM/YYYY HH:MM"			3
+//MM/DD/YYYY HH:MM:SS"		4
+//MM/DD/YYYY HH:MM"		    4
+string ls_date_formats[]
+boolean lb_valid
+integer li_rtnrslt
+lb_valid = false
+li_rtnrslt = f_allocate_string_array(12, ref ls_date_formats)
+if(li_rtnrslt = 12) then
+	ls_date_formats[1] = "DD-MMM-YYYY HH:MM:SS1"
+	ls_date_formats[2] = "DD-MMM-YYYY HH:MM1"
+	ls_date_formats[3] = "MM-DD-YYYY HH:MM:SS2"
+	ls_date_formats[4] = "MM-DD-YYYY HH:MM2"
+	ls_date_formats[5] = "DD/MM/YYYY HH:MM:SS3"
+	ls_date_formats[6] = "DD/MM/YYYY HH:MM3"
+	ls_date_formats[7] = "MM/DD/YYYY HH:MM:SS4"
+	ls_date_formats[8] = "MM/DD/YYYY HH:MM4"
+	ls_date_formats[9] = "DD-MMM-YYYY"
+	ls_date_formats[10] = "MM-DD-YYYY"
+	ls_date_formats[11] = "DD/MM/YYYY"
+	ls_date_formats[12] = "MM/DD/YYYY"	
+	integer li_num_formats
+	integer li_loop
+	integer li_format_len
+	li_num_formats = UpperBound(ls_date_formats)
+	for li_loop = 1 to li_num_formats
+		if(match(ls_dt_format, "HH:") = true) then
+			li_format_len = len(ls_date_formats[li_loop]) - 1
+		else
+			li_format_len = len(ls_date_formats[li_loop]) //there are no time components so just use the actual len
+		end if
+		if((left(ls_date_formats[li_loop], li_format_len) = ls_dt_format)) then
+			li_format_num = li_loop // integer(right(ls_date_formats[li_loop], 1))
+			lb_valid = true
+			exit
+		end if
+	next
+end if
+return lb_valid
+
+end function
+

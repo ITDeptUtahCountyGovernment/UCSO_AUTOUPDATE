@@ -1,0 +1,93 @@
+﻿$PBExportHeader$f_relative_datetime.srf
+global type f_relative_datetime from function_object
+end type
+
+forward prototypes
+global function datetime f_relative_datetime (datetime adtm_start, long al_offset)
+end prototypes
+
+global function datetime f_relative_datetime (datetime adtm_start, long al_offset);//prototype datetime ldt_ret = f_relative_datetime(adtm_start, al_offset)
+//                                                start dt      #seconds
+///////////////////////////////////////////////////////////////////////////////////////////////////////////// //
+// Function Name : gf_relative_datetime
+// Argument Name : adtm_start, Arg Type : DateTime, Pass By : Value
+//                           al_offset, Arg Type : Long, Pass By : Value
+// Return Type : Datetime
+//                        Relative datetime.
+//                        If any argument's value is NULL, function returns NULL.
+//                        If any argument's value is Invalid, function returns 1900-01-01.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Description:      Given a datetime, find the relative datetime +/- n seconds
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
+ 
+DateTime ldt_null
+Date ld_sdate
+Time lt_stime
+Long ll_date_adjust
+Long ll_time_adjust, ll_time_test
+ 
+//Check parameters
+If IsNull(adtm_start) Or IsNull(al_offset) Then
+	SetNull(ldt_null)
+	Return ldt_null
+End If
+ 
+//Check for invalid date
+If Not f_Is_Valid_DateTime(adtm_start) Then
+	Return ldt_null
+End If
+ 
+//Initialize date and time portion
+ld_sdate = Date(adtm_start)
+lt_stime = Time(adtm_start)
+ 
+//Find out how many days are contained
+//Note: 86400 is # of seconds in a day
+ll_date_adjust = al_offset /  86400
+ll_time_adjust = Mod(al_offset, 86400)
+ 
+//Adjust date portion
+ld_sdate = RelativeDate(ld_sdate, ll_date_adjust)
+ 
+//Adjust time portion
+//    Allow for time adjustments periods crossing over days
+//    Check for time rolling forwards a day
+If ll_time_adjust > 0 Then
+	
+	ll_time_test = SecondsAfter(lt_stime,Time('23:59:59'))
+	
+	If ll_time_test < ll_time_adjust Then
+		
+		ld_sdate = RelativeDate(ld_sdate,1)
+		
+		ll_time_adjust = ll_time_adjust - ll_time_test -1
+		
+		lt_stime = Time('00:00:00')
+		
+	End If
+	
+	lt_stime = RelativeTime(lt_stime, ll_time_adjust)
+	
+	//Check for time rolling backwards a day
+ElseIf  ll_time_adjust < 0 Then
+	
+	ll_time_test = SecondsAfter(lt_stime,Time('00:00:00'))
+	
+	If   ll_time_test > ll_time_adjust Then
+		
+		ld_sdate = RelativeDate(ld_sdate,-1)
+		
+		ll_time_adjust = ll_time_adjust - ll_time_test +1
+		
+		lt_stime = Time('23:59:59')
+		
+	End If
+	
+	lt_stime = RelativeTime(lt_stime, ll_time_adjust)
+	
+End If
+ 
+Return(DateTime(ld_sdate,lt_stime))
+end function
+

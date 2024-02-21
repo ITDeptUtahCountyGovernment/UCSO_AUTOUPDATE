@@ -1,0 +1,78 @@
+﻿$PBExportHeader$f_convert_month.srf
+global type f_convert_month from function_object
+end type
+
+forward prototypes
+global function string f_convert_month (string ls_month, boolean lb_to_numeric)
+end prototypes
+
+global function string f_convert_month (string ls_month, boolean lb_to_numeric);//prototype: ls_month = f_convert_month(ls_month, lb_to_numeric)
+string ls_return
+ls_return = ls_month
+if((IsNumber(ls_month) = false) and (lb_to_numeric = true))then
+	ls_month = upper(ls_month)
+	//convert ls_month to numeric
+	choose case ls_month
+		case "JAN"
+			ls_month = "01"
+		case "FEB"
+			ls_month = "02"
+		case "MAR"
+			ls_month = "03"
+		case "APR"
+			ls_month = "04"
+		case "MAY"
+			ls_month = "05"
+		case "JUN"
+			ls_month = "06"
+		CASE "JUL"
+			ls_month = "07"
+		case "AUG"
+			ls_month = "08"
+		case "SEP"
+			ls_month = "09"
+		case "OCT"
+			ls_month = "10"
+		case "NOV"
+			ls_month = "11"
+		case "DEC"
+			ls_month = "12"
+	end choose
+else
+	if(IsNumber(ls_month) = true) then
+		//convert to month abbv
+		ls_month = f_trimstr(ls_month, "0", false)
+		choose case ls_month
+			case "1"
+				ls_month = "JAN"
+			case "2"
+				ls_month = "FEB"
+			case "3"
+				ls_month = "MAR"
+			case "4"
+				ls_month = "APR"
+			case "5"
+				ls_month = "MAY"
+			case "6"
+				ls_month = "JUN"
+			case "7"
+				ls_month = "JUL"
+			case "8"
+				ls_month = "AUG"
+			case "9"
+				ls_month = "SEP"
+			case "10"
+				ls_month = "OCT"
+			case "11"
+				ls_month = "NOV"
+			case "12"
+				ls_month = "DEC"
+		end choose	
+	end if
+end if
+if(f_len(ls_month) > 0) then
+	ls_return = ls_month
+end if
+return ls_return
+end function
+

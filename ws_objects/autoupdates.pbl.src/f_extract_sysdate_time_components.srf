@@ -1,0 +1,71 @@
+﻿$PBExportHeader$f_extract_sysdate_time_components.srf
+global type f_extract_sysdate_time_components from function_object
+end type
+
+forward prototypes
+global function integer f_extract_sysdate_time_components (string ls_sysdate, ref string ls_month, ref string ls_day, ref string ls_year, ref string ls_hour, ref string ls_minute, ref string ls_second, ref string ls_date, ref string ls_time)
+end prototypes
+
+global function integer f_extract_sysdate_time_components (string ls_sysdate, ref string ls_month, ref string ls_day, ref string ls_year, ref string ls_hour, ref string ls_minute, ref string ls_second, ref string ls_date, ref string ls_time);//f_extract_sysdate_time_components
+//ls_sysdate must be in the format MM/DD/YYYY HH:MM:SS FOR THIS FUNCTION TO RETURN THE CORRECT
+// DATE AND TIME COMPONENTS.
+integer li_return_value
+li_return_value = 0 //success  -1 for failure
+if(len(trim(ls_sysdate)) > 0) then
+	string lsa_parsedata[]
+	string ls_parsedelim
+	integer li_numparsedataitems
+	integer li_allocated_num_items
+	li_allocated_num_items = f_allocate_string_array(6, lsa_parsedata)
+	if(li_allocated_num_items = 6) then
+		ls_parsedelim = " "
+		li_numparsedataitems = f_parseoutstring(ls_sysdate, ls_parsedelim, ref lsa_parsedata)
+		if(li_numparsedataitems = 2) then //date time components
+			ls_date = lsa_parsedata[1]
+			ls_time = lsa_parsedata[2]
+			string ls_mm
+			string ls_dd
+			string ls_yyyy
+			string ls_hh
+			string ls_min
+			string ls_ss
+			string lsa_dt_components[]
+			string lsa_nullarray[]
+			integer li_numallocdtcomponents
+			integer li_numparsedtcomponents
+			li_numallocdtcomponents = f_allocate_string_array(3, lsa_dt_components)
+			if(li_numallocdtcomponents = 3) then
+				ls_parsedelim = "/"
+				li_numparsedtcomponents = f_parseoutstring(ls_date, ls_parsedelim, lsa_dt_components)
+				if(li_numparsedtcomponents = 3) then
+					ls_month = lsa_dt_components[1]
+					ls_day = lsa_dt_components[2]
+					ls_year = lsa_dt_components[3]
+					lsa_dt_components = lsa_nullarray
+					ls_parsedelim = ":"
+					li_numparsedtcomponents = f_parseoutstring(ls_time, ls_parsedelim, lsa_dt_components)
+					if(li_numparsedtcomponents = 3) then
+						ls_hour = lsa_dt_components[1]
+						ls_minute = lsa_dt_components[2]
+						ls_second = lsa_dt_components[3]
+					else
+						li_return_value = -1
+					end if
+				else
+					li_return_value = -1
+				end if
+			else
+				li_return_value = -1
+			end if
+		else
+			li_return_value = -1
+		end if
+	else
+		li_return_value = -1
+	end if
+else
+	li_return_value = -1
+end if
+return li_return_value
+end function
+

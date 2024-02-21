@@ -1,0 +1,134 @@
+﻿$PBExportHeader$f_convert_julian_to_datetime.srf
+global type f_convert_julian_to_datetime from function_object
+end type
+
+forward prototypes
+global function datetime f_convert_julian_to_datetime (long ld_jd_value)
+end prototypes
+
+global function datetime f_convert_julian_to_datetime (long ld_jd_value);//prototype: datetime = f_convert_julian_to_datetime(long ld_jd_value)
+datetime ldt_datetime
+if(ld_jd_value > 0) then
+	dec ldec_num_years
+	dec ldec_numsecs_in_day
+	ldec_numsecs_in_day = ((60 * 60) * 24)	
+	ldec_num_years = (ld_jd_value / ldec_numsecs_in_day)/365
+	if(ldec_num_years > 0) then
+		date ld_1990
+		ld_1990 = date("01/01/1990")
+		dec ldec_num_days
+		ldec_num_days = (ld_jd_value / ldec_numsecs_in_day)
+		if(ldec_num_days > 0) then	
+			/*
+			//example calculation results
+			datetime = 3/6/2018 11:40:01
+			juliandate = 889184401
+			converted julian date = 3/6/2018 11:40:00
+			ls_days = 10291.4861226851851851851851852
+			ll_whole_part = 10291  
+			ldec_dpart = 0.4861226851851851851851852
+			ldec_day_seconds = 42001.0000000000000000000012800
+			ll_whole_part = 42001
+			ldec_dpart = 0.0000000000000000000012800
+			ldec_hours_secs = 11.6669444444444444444444444444
+			ll_whole_part = 11
+			ldec_dpart = 0.6669444444444444444444444444
+			ldec_mins_secs = 40.0166666666666666666666666640
+			ll_whole_part = 40
+			ldec_dpart = 0.0166666666666666666666666640
+			ll_mins = 40
+			ldec_secs_sec = 0.9999999999999999999999998400
+			ll_whole_part = 0
+			ldec_dpart = 0.9999999999999999999999998400		
+			*/		
+			integer li_month
+			integer li_day
+			integer li_year
+			integer li_hour
+			integer li_min
+			integer li_sec
+			long ll_whole_part
+			dec ldec_dpart
+			dec ldec_day_seconds		
+			string ls_Days			
+			ls_days = string(ldec_num_days)
+		   //isolate decimal portion of value
+    		ll_whole_part = f_extract_whole_decimal_from_string(ls_days, ref ldec_dpart)
+			date ld_relative_date
+			ld_relative_date = relativedate(ld_1990, ll_whole_part) //have the original date now
+			
+			ldec_day_seconds = ldec_dpart * 86400
+			ldec_day_seconds = round(ldec_day_seconds, 2)
+			string ls_day_seconds
+			ls_day_seconds = string(ldec_day_seconds)
+			ll_whole_part = f_extract_whole_decimal_from_string(ls_day_seconds, ref ldec_dpart)
+//===== 1/17/19. OLD CODE COMMENTED OUT.. WAS RETURNING BAD TIME =====
+//			string ls_day_seconds
+//			ls_day_seconds = string(ldec_day_seconds)
+//			ll_whole_part = f_extract_whole_decimal_from_string(ls_day_seconds, ref ldec_dpart)
+//			ldec_dpart = dec(ll_whole_part)
+//			dec ldec_hours_secs
+//			ldec_hours_secs = ldec_dpart / 3600
+//			string ls_hours_secs 
+//			ls_hours_secs = string(ldec_hours_secs)
+//			ll_whole_part = f_extract_whole_decimal_from_string(ls_hours_secs, ref ldec_dpart)
+//			long ll_hours
+//			ll_hours = ll_whole_part
+//			dec ldec_mins_secs
+//			ldec_mins_secs = ldec_dpart * 60
+//			string ls_mins_secs
+//			ls_mins_secs = string(ldec_mins_secs)
+//			ll_whole_part = f_extract_whole_decimal_from_string(ls_mins_secs, ref ldec_dpart)
+//			long ll_mins
+//			ll_mins = ll_whole_part
+//			dec ldec_secs_sec
+//			ldec_secs_sec = ldec_dpart * 60
+//			string ls_secs_sec
+//			ls_secs_sec = string(ldec_secs_sec)
+//			ll_whole_part = f_extract_whole_decimal_from_string(ls_secs_sec, ref ldec_dpart)
+//			long ll_secs
+//			ll_secs = ll_whole_part
+//=============================================================
+
+			//NEW TIME CODE
+			long ll_day_secs
+			ll_day_secs = long(ldec_day_seconds)
+			integer ll_hours_n
+			integer ll_mins_n
+			integer ll_secs_n
+			if(ll_day_secs = 86400) then
+				ll_hours_n = 23
+				ll_mins_n = 59
+				ll_secs_n = 59
+			else
+				ll_hours_n = (ll_day_secs / 3600)
+				ll_mins_n = ((ll_day_secs - (ll_hours_n * 3600)) / 60)
+				ll_secs_n = (ll_day_secs - ((ll_hours_n * 3600) + (ll_mins_n * 60)))
+			end if
+
+			string ls_hhmmss
+			string ls_hours
+			ls_hours = string(ll_hours_n)
+			if(len(ls_hours) < 2) then
+				ls_hours = f_lpad(ls_hours, 2, "0")
+			end if
+			string ls_mins
+			ls_mins = string(ll_mins_n)
+			if(len(ls_mins) < 2) then
+				ls_mins = f_lpad(ls_mins, 2, "0")
+			end if
+			string ls_secs
+			ls_secs = string(ll_secs_n)
+			if(len(ls_secs) < 2) then
+				ls_secs = f_lpad(ls_secs, 2, "0")
+			end if
+			ls_hhmmss = ls_hours + ":" + ls_mins + ":" + ls_secs
+			time lt_time
+			lt_time = time(ls_hhmmss)			
+			ldt_datetime = datetime(ld_relative_date, lt_time)
+		end if
+	end if
+end if
+return ldt_datetime
+end function
+

@@ -1,0 +1,44 @@
+﻿$PBExportHeader$f_delay.srf
+global type f_delay from function_object
+end type
+
+forward prototypes
+global function integer f_delay (integer li_seconds)
+end prototypes
+
+global function integer f_delay (integer li_seconds);decimal dec_start
+decimal dec_relative
+datetime ldt_start
+ldt_start = datetime(today(), now())
+dec_start = f_get_julian_date_value(ldt_start)
+datetime ldt_relativedatetime
+ldt_relativedatetime = f_relative_datetime(ldt_start, li_seconds)
+dec_relative = f_get_julian_date_value(ldt_relativedatetime)
+long ll_max_loops
+ll_max_loops = 100000
+long ll_loop_count
+ll_loop_count = 0
+boolean bcontinue
+bcontinue = true
+datetime ldt_curr
+dec dec_curr
+long ll_mod_val
+do
+	ll_loop_count++
+	ldt_curr = datetime(today(), now())
+	dec_curr = f_get_julian_date_value(ldt_curr)
+	if(dec_curr > dec_relative) then
+		bcontinue = false
+	else
+		ll_mod_val = Mod(ll_loop_count, 100)
+		if(ll_mod_val = 0) then
+			Yield()
+		end if
+	end if
+	if(ll_loop_count > ll_max_loops) then
+		bcontinue = false
+	end if	
+loop until bcontinue = false	
+return 0
+end function
+

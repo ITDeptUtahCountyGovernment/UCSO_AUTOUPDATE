@@ -1,0 +1,61 @@
+﻿$PBExportHeader$f_get_julian_date_value_ext.srf
+global type f_get_julian_date_value_ext from function_object
+end type
+
+forward prototypes
+global function decimal f_get_julian_date_value_ext (datetime ldt_datetime)
+end prototypes
+
+global function decimal f_get_julian_date_value_ext (datetime ldt_datetime);// protoeypte: decimal = f_get_julian_date_value(ldt_datetime)
+//
+// Method to calculate a julian date value (537722618.40183067)
+// The Algorithm used is simple. The number of seconds in a TimeSpan object from 1/1/1990 00:00:00
+// Will work beyond 12/31/2099
+//
+// On Entry:
+//  ref string sJDValue in a date time format
+//   - if empty string then use current date time for julian date
+//   - if not empty, convert to datetime and use that for the julian date
+//
+// On Exit:
+//  double julian date value ie; 537722618.40183067
+//  string ref of julian date value
+//
+dec ldec_jdvalue
+ldec_jdvalue = 0.0
+//validate ldt_datetime
+string ls_datetime
+ls_datetime = string(ldt_datetime)
+if(f_len(ls_datetime) > 0) then
+	integer li_space_position
+	li_space_position = pos(ls_datetime, " ")
+	if(li_space_position > 0) then
+		string ls_date
+		string ls_time
+		date ld_date
+		time lt_time
+		ls_date = trim(left(ls_datetime, li_space_position))
+		ls_time = trim(mid(ls_datetime, li_space_position))
+		ld_date = date(ls_date)
+		lt_time = time(ls_time)
+		date ld_1900
+		ld_1900 = date("01/01/1900")
+		long ll_num_days
+		ll_num_days = DaysAfter(ld_1900, ld_date) //01/01/1990 - 03/06/2018 numdays=10291
+		if(ll_num_days > 0) then
+			dec ldec_numsecs_in_day
+			ldec_numsecs_in_day = ((60 * 60) * 24)
+			ldec_jdvalue = ll_num_days * ldec_numsecs_in_day
+			//now add the number of seconds from ld_date 00:00:00 to lt_time HH:MM:SS
+			time lt_midnight
+			lt_midnight = time("00:00:00")
+			dec ldec_num_secs
+		 	ldec_num_secs = SecondsAfter(lt_midnight, lt_time)
+			//add those seconds 
+			ldec_jdvalue += ldec_num_secs
+		end if
+	end if
+end if
+return ldec_jdvalue
+end function
+

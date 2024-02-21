@@ -1,0 +1,49 @@
+﻿$PBExportHeader$f_convert_str_date_to_sql.srf
+global type f_convert_str_date_to_sql from function_object
+end type
+
+forward prototypes
+global function string f_convert_str_date_to_sql (string ls_datetime)
+end prototypes
+
+global function string f_convert_str_date_to_sql (string ls_datetime);//prototype: ls_sql_todate = f_convert_str_date_to_sql(ls_datetime)
+//requirements:
+//ls_datetime format = 'MM/DD/YYYY 00:00:01'
+string ls_sql_todate
+ls_sql_todate = ""
+if(f_len_ext(ls_datetime) >= 8) then
+	string ls_sql_date_format
+	ls_sql_date_format = "MM/DD/YYYY"
+	//to_date('06/15/2021','MM/DD/YYYY')
+	if(f_len_ext(ls_datetime) = 10) then
+		ls_datetime = ls_datetime + " 00:00:01"
+	end if
+	//ensure ls_datetime had values padded
+	string ls_month
+	string ls_day
+	string ls_year
+	string ls_hour
+	string ls_minute
+	string ls_second
+	string ls_date
+	string ls_time
+	f_extract_sysdate_time_components_ext(ls_datetime, "MM/DD/YYYY", ref ls_month, ref ls_day, ref ls_year, ref ls_hour, ref ls_minute, ref ls_second, ref ls_date, ref ls_time)
+	if(f_len_ext(ls_date) > 0) then
+		ls_month = f_lpad(ls_month, 2, "0")
+		ls_day = f_lpad(ls_day, 2, "0")
+		ls_hour = f_lpad(ls_hour, 2, "0")
+		ls_minute = f_lpad(ls_minute, 2, "0")
+		ls_second = f_lpad(ls_second, 2, "0")
+		if(f_stoi(ls_second) = 0) then
+			ls_second = "01"
+		end if
+		ls_datetime = ls_month + "/" + ls_day + "/" + ls_year + " " + ls_hour + ":" + ls_minute + ":" + ls_second
+		if(f_len_ext(ls_datetime) > 10) then
+			ls_sql_date_format = ls_sql_date_format + " hh24:mi:ss"
+		end if
+		ls_sql_todate = "to_date('" + ls_datetime + "','" + ls_sql_date_format + "')"
+	end if
+end if
+return ls_sql_todate
+end function
+

@@ -1,0 +1,36 @@
+﻿$PBExportHeader$f_is_valid_datetime.srf
+global type f_is_valid_datetime from function_object
+end type
+
+forward prototypes
+global function boolean f_is_valid_datetime (datetime adtm_source)
+end prototypes
+
+global function boolean f_is_valid_datetime (datetime adtm_source);///////////////////////////////////////////////////////////////////////////////////////////////////////////// //
+// Function Name : f_is_valid_datetime
+// Argument Name : adtm_source, Arg Type : DateTime, Pass By : Value
+// Return Type :      Boolean
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Description:      Given a datetime, will determine if the Datetime is valid.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
+ 
+Date     ldt_value
+ 
+//Check parameters
+If IsNull(adtm_source) Then
+	Return False
+End If
+ 
+//There is only need to test the Date portion of the DateTime.
+//Can't tell if time is invalid because 12am is 00:00:00:000000
+ldt_value = Date(adtm_source)
+ 
+//Check for invalid date
+If Not f_Is_Valid_Date(ldt_value) Then
+	Return False
+End If
+ 
+Return True
+end function
+

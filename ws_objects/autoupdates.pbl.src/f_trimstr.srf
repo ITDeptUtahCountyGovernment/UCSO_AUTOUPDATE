@@ -1,0 +1,74 @@
+﻿$PBExportHeader$f_trimstr.srf
+global type f_trimstr from function_object
+end type
+
+forward prototypes
+global function string f_trimstr (string ls_strtotrim, string ls_char_to_trim, boolean lb_both_ends)
+end prototypes
+
+global function string f_trimstr (string ls_strtotrim, string ls_char_to_trim, boolean lb_both_ends);//===================================================================|
+//Function Name: f_trimstr                                           |
+//      Purpose: Trims the leading and/or trailing characters from   |
+//               the passed in string to trim.                       |
+//   Programmer: m.k.johnson                                         |
+//     On Entry: string ls_strtotrim = string that will be trimmed.  |
+//               string ls_char_to_trim = character to trim out.     |
+//               boolean lb_both_ends = true to trim trailing chars. |
+//    On Return: string ls_trimed_string = created string.           |
+//    Example#1: ls_strtotrim = "010001100"                          |
+//               ls_char_to_trim = "0"                               |
+//               lb_both_ends = false                                |
+//               ls_trimmed_string = "10001100"                      |
+//    Example#2: ls_strtotrim = "010001100"                          |
+//               ls_char_to_trim = "0"                               |
+//               lb_both_ends = true                                 |
+//               ls_trimmed_string = "1000110"                       |
+//    Revisions: 9/8/2017 ORIGINAL                                   |
+//===================================================================|
+string ls_trimmed_string
+string ls_tchar
+integer li_loop
+integer li_str_len
+integer li_right_len
+integer li_ascii_trim_char
+integer li_ascii_char
+//01/30/18: added a check to see if there are any characted to trim within the ls_strtotrim. If not then just return ls_strtotrim
+integer li_num_trim_chars
+li_num_trim_chars = f_count_num_characters(ls_strtotrim, ls_char_to_trim)
+if(li_num_trim_chars > 0) then
+	li_ascii_trim_char = asc(ls_char_to_trim)
+	ls_trimmed_string = ls_strtotrim
+	if(len(ls_char_to_trim) = 1) then
+		li_str_len = len(ls_strtotrim)
+		integer li_trim_len
+		li_str_len = len(ls_trimmed_string)
+		//trim trailing
+		for li_loop = li_str_len to 1 step - 1
+			ls_tchar = mid(ls_trimmed_string, li_loop, 1)
+			li_ascii_char = asc(ls_tchar)
+			if(li_ascii_char <> li_ascii_trim_char) then
+				li_trim_len = li_loop  //- 1 //commented out 02/06/18. -1 was causing string to miss the last valid character
+				ls_trimmed_string = left(ls_trimmed_string, li_trim_len)
+				exit
+			end if
+		next
+		if(lb_both_ends = true) then	
+			li_str_len = len(ls_strtotrim)
+			//trim leading
+			for li_loop = 1 to li_str_len
+				ls_tchar = mid(ls_strtotrim, li_loop, 1)
+				li_ascii_char = asc(ls_tchar)
+				if(li_ascii_char <> li_ascii_trim_char) then
+					li_right_len = (li_str_len - li_loop) + 1
+					ls_trimmed_string = right(ls_strtotrim, li_right_len)
+					exit
+				end if
+			next
+		end if
+	end if
+else
+	ls_trimmed_string = ls_strtotrim
+end if
+return ls_trimmed_string
+end function
+

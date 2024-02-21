@@ -1,0 +1,44 @@
+﻿$PBExportHeader$f_allocate_string_array.srf
+global type f_allocate_string_array from function_object
+end type
+
+forward prototypes
+global function integer f_allocate_string_array (integer li_size, ref string sa_array[])
+end prototypes
+
+global function integer f_allocate_string_array (integer li_size, ref string sa_array[]);//===================================================================|
+//Function Name: f_allocate_string_array                             |
+//   PROTOTYPE: numitems = f_allocate_string_array(nsize, ref array[]|
+//      Purpose: programatically allocates the passed in array object|
+//               with empty strings.                                 |
+//   Programmer: m.k.johnson                                         |
+//     On Entry: integer li_size = number of elements to allocate    |
+//                                 to the array                      |
+//               string[] sa_array = string array to allocate        |
+//    On Return: string[] sa_array = allocated li_size of empty      |
+//                                   strings                         |
+//               int li_return = 0 success -1 error	               |
+//    Revisions: 7/7/2017 ORIGINAL                                   |
+//===================================================================|
+//local variables
+int li_return = 0       //return status value. 0=success -1=error
+long ll_arraysize       //holds the size of the array to allocate
+string ls_err_msg = ""  //try-catch error message
+string nullarray[]
+sa_array = nullarray
+try
+	ll_arraysize = li_size
+	string sTempArray[] //create a temp array
+	int n 
+	for n = 1 to ll_arraysize //set the temp array to the size specified
+		sTempArray[n] = ""
+	next
+	sa_array = sTempArray
+catch (runtimeerror er)
+	MessageBox("RUNTIME ERROR", er.GetMessage(), STOPSIGN!)
+	li_return = -1
+end try
+li_return = UpperBound(sa_array)
+return li_return
+end function
+

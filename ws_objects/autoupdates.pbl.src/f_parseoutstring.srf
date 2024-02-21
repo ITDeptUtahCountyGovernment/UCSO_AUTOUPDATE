@@ -1,0 +1,87 @@
+﻿$PBExportHeader$f_parseoutstring.srf
+global type f_parseoutstring from function_object
+end type
+
+forward prototypes
+global function integer f_parseoutstring (string ls_stringtoparse, string ls_parsedelim, ref string lsa_parsedata[])
+end prototypes
+
+global function integer f_parseoutstring (string ls_stringtoparse, string ls_parsedelim, ref string lsa_parsedata[]);//=======================================================================|
+//Function Name: f_parseoutstring                                        |
+//      Purpose: Parse's out the strings in the ls_stringtoparse arg     |
+//               and returns the individual items in the lsa_parsedata[] |
+//               array. The ls_parsedelim holds the character used to    |
+//               delimit the string to parse.                            |
+//   Programmer: m.k.johnson                                             |
+//     On Entry: string ls_stringtoparse = ie: "blue|black|red"          |
+//               string ls_parsedelim = "|"                              |
+//    On Return: int li_numparseitems = the number of items in the array.|
+//               string array lsa_parsedata[] = position [1] = "blue"    |
+//                                              position [2] = "black"   |
+//                                              position [3] = "red"     |
+//    Revisions: 7/11/2017 ORIGINAL                                      |
+//=======================================================================|
+//local variables
+String ls_itemfound
+int li_foundpos
+int li_prevpos
+int li_startpos
+int li_numcharsfound
+int li_numtoextract
+int li_numparseitems
+int li_rtnrslt
+integer li_string_len
+boolean lb_rtnrslt
+//script code
+li_string_len = len(ls_stringtoparse)
+li_numparseitems = 0
+li_numcharsfound = f_num_chars_in_string(ls_stringtoparse, ls_parsedelim)
+if(li_numcharsfound >= 0) then
+	if(li_numcharsfound = 0) then
+		if(Len(ls_stringtoparse) > 1) then
+			li_numcharsfound = 1
+		else
+			if(IsNumber(ls_stringtoparse) = true) then
+				li_numcharsfound = 1
+			end if
+		end if
+	else
+		li_numcharsfound++
+	end if	
+	li_rtnrslt = f_allocate_string_array(li_numcharsfound, ref lsa_parsedata)
+	if(li_rtnrslt = li_numcharsfound) then
+		li_startpos = 1
+		li_prevpos = 1
+		if(li_numcharsfound = 1) then
+			lb_rtnrslt = true
+		else
+			lb_rtnrslt = Match(ls_stringtoparse, ls_parsedelim)	
+		end if
+		if(lb_rtnrslt = true) then
+			integer li_start_pos
+			do
+				li_foundpos = Pos(ls_stringtoparse, ls_parsedelim, li_startpos)
+				if li_foundpos > 0 then
+					li_numtoextract = (li_foundpos - li_prevpos)
+					ls_itemfound = Mid(ls_stringtoparse, li_prevpos, li_numtoextract)
+					ls_itemfound = f_trimstr(ls_itemfound, " ", true)
+					li_numparseitems++
+					lsa_parsedata[li_numparseitems] = ls_itemfound
+					li_startpos = li_foundpos + 1
+					li_prevpos = li_startpos
+				end if
+			loop while (li_foundpos > 0)
+			if(li_string_len >= li_startpos) then //get last item
+				li_numtoextract = (len(ls_stringtoparse) - li_prevpos) + 1
+				ls_itemfound = Mid(ls_stringtoparse, li_prevpos, li_numtoextract)
+				ls_itemfound = f_trimstr(ls_itemfound, " ", true)				
+				li_numparseitems++
+				lsa_parsedata[li_numparseitems] = ls_itemfound
+			end if
+		end if // Match(ls_titlestohighlight, ls_parsedelim) = true
+	end if //li_rtnrslt = 0
+end if //li_numcharsfound > 0
+li_numparseitems = upperbound(lsa_parsedata)
+return li_numparseitems
+end function
+

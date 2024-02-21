@@ -1,0 +1,52 @@
+﻿$PBExportHeader$f_num_chars_in_string_ext.srf
+global type f_num_chars_in_string_ext from function_object
+end type
+
+forward prototypes
+global function integer f_num_chars_in_string_ext (string ls_string, string ls_lookfor)
+end prototypes
+
+global function integer f_num_chars_in_string_ext (string ls_string, string ls_lookfor);//===================================================================|
+//Function Name: f_num_chars_in_string_ext                           |
+//      Purpose: Count the number of character(s) in the passed in   |
+//               string.                                             |
+//   Programmer: m.k.johnson                                         |
+//     On Entry: string ls_string = string to find the chars in      |
+//               string ls_lookfor = the string of char(s) to lookfor|
+//    On Return: int li_numcharitemsfound = holds the count of the   |
+//               number of characters found in ls_string.            |
+//    Revisions: 7/10/2017 ORIGINAL                                  |
+//               6/29/2018 fixed bug where two ls_lookfor are one    |
+//                         right after the other. ie: ' '' ' = 3,    |
+//                         should of been 4.                         |
+//===================================================================|
+int li_numcharitemsfound
+int li_foundpos
+int li_startpos
+li_startpos = 1
+integer li_lookfor_len
+integer li_string_len
+li_string_len = len(ls_string)
+li_lookfor_len = len(ls_lookfor)
+//===========================================================
+if Pos(ls_string, ls_lookfor, 1) > 0 then
+	li_numcharitemsfound++ //if there is a comma then increment chars found
+	do
+		li_foundpos = Pos(ls_string, ls_lookfor, li_startpos)
+		if li_foundpos > 0 then
+			li_numcharitemsfound++
+			li_startpos = (li_foundpos + li_lookfor_len) 
+			//li_startpos = (len(trim(ls_lookfor)) + li_foundpos + 1) //old code
+		end if
+	loop while li_foundpos > 0
+end if
+return li_numcharitemsfound
+//00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011111111111
+//00000000011111111112222222222333333333344444444445555555555666666666677777777778888888888999999999900000000001
+//12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+//Alviso A        ,Adam A Alviso                                                ,ucaalvis        ,JL  ,
+//17 79 96 101
+
+
+end function
+

@@ -1,0 +1,31 @@
+﻿$PBExportHeader$f_rpad.srf
+global type f_rpad from function_object
+end type
+
+forward prototypes
+global function string f_rpad (string ls_instr, integer li_len, string ls_pad)
+end prototypes
+
+global function string f_rpad (string ls_instr, integer li_len, string ls_pad);//prototype: padstr = f_rpad(instring, length, padwithchar)
+string ls_return
+integer li_len_instr
+ls_return = ls_instr
+if(li_len > 0) then //if li_len is zero then just return ls_instr
+	li_len_instr = f_len(ls_instr)
+	if(li_len > li_len_instr) then
+		string ls_pad_str
+		integer li_pad_len
+		li_pad_len = li_len - li_len_instr
+		if(li_pad_len > 0) then
+			ls_pad_str = fill(ls_pad, li_pad_len)
+		end if
+		ls_return = ls_instr + ls_pad_str
+	elseif(li_len = li_len_instr) then
+		ls_return = ls_instr
+	elseif(li_len_instr > li_len) then //if the passed in len of ls_instr is greater then li_len then return left the li_len of characters
+		ls_return = left(ls_instr, li_len)
+	end if
+end if
+return ls_return
+end function
+

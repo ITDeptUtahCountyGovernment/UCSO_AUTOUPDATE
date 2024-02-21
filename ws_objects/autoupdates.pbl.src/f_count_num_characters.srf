@@ -1,0 +1,57 @@
+﻿$PBExportHeader$f_count_num_characters.srf
+global type f_count_num_characters from function_object
+end type
+
+forward prototypes
+global function integer f_count_num_characters (string ls_str_to_check, string ls_chars_to_count)
+end prototypes
+
+global function integer f_count_num_characters (string ls_str_to_check, string ls_chars_to_count);//integer f_count_num_characters(string ls_str_to_check, string ls_chars_to_count)
+//===================================================================|
+//Function Name: f_count_num_characters                              |
+//      Purpose: This function counts the number of characters found |
+//               in the input string ls_str_to_check.                |
+//   Programmer: m.k.johnson                                         |
+//     On Entry: string ls_str_to_check = string to count chars in.  |
+//               string ls_chars_to_count = character to match for   |
+//               count.                                              |
+//    On Return: integer li_numcharsfound = count of found chars.    |
+//               ref long ll_colorpicker_ycol = column of color.     |
+//               The colorchart_new.bmp is 4 columns by 8 rows.      |
+//               note: this function always returns 0                |
+//    Revisions: 7/7/2017 ORIGINAL                                   |
+//===================================================================|
+//local variables
+string ls_char
+int li_numcharstocount
+int li_loop
+int li_numcharsfound
+integer li_ascii_chars_to_count
+integer li_ascii_char
+integer li_str_len
+//script code
+li_numcharsfound = 0
+li_str_len = len(ls_str_to_check)
+//ls_chars_to_count = trim(ls_chars_to_count) //removed 10/17/2017. we will want to count space characters too. this line was causing the count to be incorrect.
+li_numcharstocount = len(ls_chars_to_count)
+if(li_numcharstocount = 1) then
+	li_ascii_chars_to_count = asc(ls_chars_to_count)
+	for li_loop = 1 to li_str_len
+		ls_char = Mid(ls_str_to_check, li_loop, 1)
+		li_ascii_char = asc(ls_char)
+		//if(match(ls_str_to_check, ls_char) = true) then
+		if(li_ascii_char = li_ascii_chars_to_count) then
+			li_numcharsfound++
+		end if
+	next
+else
+	for li_loop = 1 to li_str_len
+		ls_char = Mid(ls_chars_to_count, li_loop, 1)
+		if(match(ls_str_to_check, ls_char) = true) then
+			li_numcharsfound++
+		end if
+	next
+end if
+return li_numcharsfound
+end function
+

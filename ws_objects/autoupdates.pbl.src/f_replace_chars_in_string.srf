@@ -1,0 +1,53 @@
+﻿$PBExportHeader$f_replace_chars_in_string.srf
+global type f_replace_chars_in_string from function_object
+end type
+
+forward prototypes
+global function string f_replace_chars_in_string (string ls_instring, string ls_chars_to_replace, string ls_replace_chars)
+end prototypes
+
+global function string f_replace_chars_in_string (string ls_instring, string ls_chars_to_replace, string ls_replace_chars);//=======================================================================|
+//Function Name: f_replace_chars_in_string                               |
+//      Purpose: Replaces all occurances of ls_chars_to_replace within   |
+//               the ls_instring with characters ls_replace_chars.       |
+//   Programmer: m.k.johnson                                             |
+//     On Entry: string ls_instring = string to replace chars in.        |
+//               string ls_chars_to_replace = char(s) to replace in      |
+//                                           ls_instring                 |
+//               string ls_replace_chars = chars that will replace those |
+//                                  ins the ls_chars_to_replace.         |
+//    On Return: string ls_return = the original passed in string with   |
+//                     the ls_chars_to_replace replaced with those in    |
+//                  the string ls_replace_chars.                         |
+// NOTE: if either ls_chars_to_replace or ls_replace_chars are blank then|
+//       just the ls_instring is returned.                               |
+//    Revisions: 10/03/2017 ORIGINAL                                     |
+//=======================================================================|
+string ls_return
+string ls_temp_rtn
+ls_return = ls_instring //default the return string to the input string
+if((f_len(ls_return) > 0) and (f_len(ls_chars_to_replace) > 0) and (f_len(ls_replace_chars) > 0))then
+	integer li_num_found_rep_chars
+	li_num_found_rep_chars = f_count_num_characters(ls_instring, ls_chars_to_replace)
+	if(li_num_found_rep_chars > 0) then
+		string lsa_parsedata[]
+		integer li_num_parse_data_items
+		integer li_loop
+		ls_temp_rtn = ""
+		li_num_parse_data_items = f_parseoutstring_ext(ls_instring, ls_chars_to_replace, ref lsa_parsedata)
+		if(li_num_parse_data_items > 0) then
+			for li_loop = 1 to li_num_parse_data_items
+				ls_temp_rtn = ls_temp_rtn + lsa_parsedata[li_loop]
+				if(li_loop < li_num_parse_data_items) then
+					ls_temp_rtn = ls_temp_rtn + ls_replace_chars
+				end if
+			next //end li_loop
+		end if
+	end if
+end if
+if(f_len(ls_temp_rtn) > 0) then
+	ls_return = ls_temp_rtn
+end if
+return ls_return
+end function
+

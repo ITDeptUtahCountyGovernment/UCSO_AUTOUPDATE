@@ -1,0 +1,14 @@
+﻿$PBExportHeader$autoupdate.srj
+EXE:autoupdate.exe,,0,1,0,1,
+CMP:0,0,0,2,0,0,1
+COM:
+DES:
+CPY:
+PRD:
+PVS:1.0.0.1
+PVN:1,0,0,1
+FVS:1.0.0.1
+FVN:1,0,0,1
+MAN:0,asInvoker,0
+POWERCLIENT:{"autoupdate":{"Format":"1.0","AppType":1,"AppName":"autoupdate","OutputDir":"C:\\Users\\mikej\\AppData\\Local\\Temp\\pbappscache\\temp\\autoupdate","ResourceName":"","Arguments":"","DeployVersion":"1.01","MinimumValidVersion":"1.01","OnlineTime":"2024-02-21 17:08:08","OfflineTime":"2034-02-21 17:08:08","PromptOverwrite":false,"WindowsClassicStyle":true,"FullBuild":true,"EnableDebugSymbol":true,"EncryptPbdFiles":true,"Is32Bit":true,"CheckLauncherValid":true,"LocalServer":false,"ServerProfile":"autoupdate","GeneratePackage":false,"PackageOutputExe":false,"PackageLauncher":false,"DefaultLauncher":true,"LauncherPath":"C:\\Users\\mikej\\AppData\\Roaming\\CloudAppLauncher_Installer","RuntimePlatform":0,"LauncherName":"Default_Both_WithServiceSingle","PackageOutputPath":"C:\\Users\\mikej\\AppData\\Local\\Temp\\pbappscache\\export","FullDownload":false,"DeployWebPage":0,"CreateDesktopShortcut":true,"CreateStartMenuShortcut":true,"CreateAppUninstallShortcut":true,"AppShortcutName":"autoupdate","AppShortcutImage":"","ShowStartAnimatedWindow":true,"CheckPbdValidaty":false,"StartMode":0,"IsVerOffCheck":false,"PBCParams":"","RuntimeVersion":"21.0.0.1506","PreloadEventCommands":"","RunCommandAsAdmin":false,"AlwaysRunCommand":false,"ProductName":"","CompanyName":"","Description":"","Copyright":"","ProductVersion":"1.0.0.1","FileVersion":"1.0.0.1","ProductVersionMajor":1,"ProductVersionMinor":0,"ProductVersionBuild":0,"ProductVersionRevision":1,"FileVersionMajor":1,"FileVersionMinor":0,"FileVersionBuild":0,"FileVersionRevision":1,"GenerateOption":2,"ExecutionLevel":2,"AllowAccessSystemUI":false,"RunWithHttps":false,"RunWithShellApp":true,"RunArguments":"","RunHost":"10.100.0.92","RunPort":"","AppStartupMethod":0,"Libraries":[{"PbdName":"autoupdates.pbd","PbdLocalPath":"autoupdates.pbd"}],"PredownloadPackages":{},"PredownloadFiles":[],"InstantDownloadFiles":[],"RuntimeModules":["Core Runtime Files","Microsoft OLE DB Driver for SQL Server (MOD)","Oracle 10 & 10g (O10)","HTTPClient Support","OAuth 2.0 Support","RESTClient Support","WebBrowser Support"],"RegisterFiles":[],"Signing":{"SignOption":0,"CustomScript":"","SignTool":"","PfxFile":"","PfxPassword":"","Algorithm":"SHA256","TimeStamp":"http://timestamp.digicert.com"},"powerserver":{"webapiurl":"","webapihost":"localhost","webapiport":5009,"iswebapihttps":false,"srvsrcoutdir":"C:\\Users\\mikej\\source\\repos","srvsrcoutdiradditiondir":"","modelname":"","generateopts":0,"licensefile":"","licenseversion":"","licensecontent":"","TemplateTypeName":"Default","bBuildSolution":true,"EnvironmentType":"Default"},"IniConfigFiles":[]}}
+PBD:autoupdates.pbl,,1

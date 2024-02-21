@@ -1,0 +1,40 @@
+﻿$PBExportHeader$f_num_chars_in_string.srf
+global type f_num_chars_in_string from function_object
+end type
+
+forward prototypes
+global function integer f_num_chars_in_string (string ls_string, string ls_lookfor)
+end prototypes
+
+global function integer f_num_chars_in_string (string ls_string, string ls_lookfor);//===================================================================|
+//Function Name: f_num_chars_in_string                               |
+//      Purpose: Count the number of character(s) in the passed in   |
+//               string.                                             |
+//   Programmer: m.k.johnson                                         |
+//     On Entry: string ls_string = string to find the chars in      |
+//               string ls_lookfor = the string of char(s) to lookfor|
+//    On Return: int li_numcharitemsfound = holds the count of the   |
+//               number of characters found in ls_string.            |
+//    Revisions: 7/10/2017 ORIGINAL                                  |
+//===================================================================|
+int li_numcharitemsfound
+int li_foundpos
+int li_startpos
+li_startpos = 1
+//===========================================================
+if Pos(ls_string, ls_lookfor, 1) > 0 then
+	do
+		li_foundpos = Pos(ls_string, ls_lookfor, li_startpos)
+		if li_foundpos > 0 then
+			li_numcharitemsfound++
+			li_startpos = (len(trim(ls_lookfor)) + li_foundpos + 1)
+		end if
+	loop while li_foundpos > 0
+	if len(ls_string) > li_startpos then
+		li_foundpos = 0
+		//li_numcharitemsfound++
+	end if
+end if
+return li_numcharitemsfound
+end function
+

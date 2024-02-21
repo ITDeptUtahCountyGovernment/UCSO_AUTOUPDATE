@@ -1,0 +1,64 @@
+﻿$PBExportHeader$f_get_system_datetime.srf
+global type f_get_system_datetime from function_object
+end type
+
+forward prototypes
+global function datetime f_get_system_datetime (string ls_date_data)
+end prototypes
+
+global function datetime f_get_system_datetime (string ls_date_data);//===================================================================|
+//Function Name: f_get_system_datetime                               |
+//      Purpose: Retrieves the current datetime from the system or   |
+//               using the passed in ls_date_data.                   |
+//   Programmer: m.k.johnson                                         |
+//     On Entry: string ls_date_data = blank to use current datetime,|
+//                                   or 08/15/17 00:00:00 to get it  |
+//                                   formatted to sql format.        |
+//    On Return: datetime                   						 |
+//    Revisions: 9/8/2017 ORIGINAL                                   |
+//===================================================================|
+integer li_rtnrslt
+string ls_sysdate
+string ls_dd_comp_date
+datetime ldt_sysdate
+string ls_dd_compare_date
+string ls_comp_date
+string ls_comp_time
+string ls_date
+string ls_time
+string ls_mm
+string ls_dd
+string ls_yyyy
+string ls_hh
+string ls_min
+string ls_ss
+ldt_sysdate = DateTime(Today(), Now())
+ls_sysdate = string(ldt_sysdate) //8/18/2017 13:25:32
+if(len(trim(ls_date_data)) > 0) then
+	ls_dd_comp_date = ls_date_data //08/15/17 00:00:00
+else
+	ls_dd_comp_date = ls_sysdate
+end if
+li_rtnrslt = f_extract_sysdate_time_components(ls_sysdate, ref ls_mm, ref ls_dd, ref ls_yyyy, ref ls_hh, ref ls_min, ref ls_ss, ref ls_date, ref ls_time)
+if(li_rtnrslt = 0) then //successful extraction
+	ls_comp_date = ls_mm + "/" + ls_dd + "/" + ls_yyyy
+	ls_comp_time = ls_hh + ":" + ls_min + ":00"
+	if(match(ls_dd_comp_date, ls_comp_date) = true) then 
+		//date is same as system date time so just add the time component
+		integer li_pos
+		li_pos = pos(ls_dd_comp_date, " ", 1)
+		if(li_pos > 0) then
+			ls_sysdate = Mid(ls_dd_comp_date, 1, li_pos - 1) + " " + ls_comp_time
+		else
+			ls_sysdate = ls_dd_comp_date + " " + ls_comp_time
+		end if
+	else
+		//just use the selected date with 00:00:00 time component
+		li_pos = pos(ls_dd_comp_date, " ", 1)			
+		ls_sysdate = Mid(ls_dd_comp_date, 1, li_pos - 1) + " 00:00:00"
+	end if
+end if
+ldt_sysdate = datetime(ls_sysdate)
+return ldt_sysdate
+end function
+

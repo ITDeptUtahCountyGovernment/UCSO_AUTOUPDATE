@@ -1,0 +1,127 @@
+﻿$PBExportHeader$f_format_datetime_string_ext.srf
+global type f_format_datetime_string_ext from function_object
+end type
+
+forward prototypes
+global function string f_format_datetime_string_ext (boolean lb_use_dt_components, s_dt_values as_dtvals, boolean lb_format_date_mmddyy, boolean lb_include_date_delim, string ls_date_delim, boolean lb_2digit_year, boolean lb_include_time_delim, boolean lb_include_time_secs, boolean lb_include_time_component, boolean lb_include_date_time_space)
+end prototypes
+
+global function string f_format_datetime_string_ext (boolean lb_use_dt_components, s_dt_values as_dtvals, boolean lb_format_date_mmddyy, boolean lb_include_date_delim, string ls_date_delim, boolean lb_2digit_year, boolean lb_include_time_delim, boolean lb_include_time_secs, boolean lb_include_time_component, boolean lb_include_date_time_space);//prototype: ls_datetime = f_format_datetime_string_ext(lb_use_dt_components, s_dt_values, lb_format_date_mmddyy, lb_include_date_delim, ls_date_delim, 
+//														lb_2digit_year, lb_include_time_delim, lb_include_time_secs, lb_include_time_component, lb_include_time_component)
+/*############################################################################################################*/
+//EXAMPLES BELOW
+/*
+ls_datetime = f_format_datetime_string_ext(lb_use_dt_components, 
+					   lstr_dt_values, 
+					   lb_format_date_mmddyy, 
+					   lb_include_date_delim, 
+                                           ls_date_delim, 
+					   lb_2digit_year, 
+					   lb_include_time_delim, 
+					   lb_include_time_secs, 
+					   lb_include_time_component,
+					   lb_include_date_time_space)
+f_format_datetime_string_ext(false, str_dt_values,false,false,'/',false,false,false,false,false) = "01062018"
+f_format_datetime_string_ext(false, str_dt_values,true,false,'/',false,false,false,false,false) = "06012018"
+f_format_datetime_string_ext(false, str_dt_values,true,true,'/',false,false,false,false,false) = "06/01/2018"
+f_format_datetime_string_ext(false, str_dt_values,true,true,'-',false,false,false,false,false) = "06-01-2018"
+f_format_datetime_string_ext(false, str_dt_values,true,true,'/',true,false,false,false,false) = "06/01/18"
+f_format_datetime_string_ext(false, str_dt_values,true,true,'/',true,false,false,true,false) = "06/01/181003"
+f_format_datetime_string_ext(false, str_dt_values,true,true,'/',true,true,false,true,false) = "06/01/1810:03"
+f_format_datetime_string_ext(false, str_dt_values,true,true,'/',true,true,true,true,false) = "06/01/1810:04:26"
+f_format_datetime_string_ext(false, str_dt_values,true,true,'/',true,true,true,true,true) = "06/01/18 10:05:08"
+f_format_datetime_string_ext(false, str_dt_values,true,false,'/',true,false,true,true,false) = "060118100543"
+f_format_datetime_string_ext(false, str_dt_values,true,false,'/',false,false,true,true,false) = "06012018102829"
+lstr_dt_values.li_day = 12
+lstr_dt_values.li_month = 3
+lstr_dt_values.li_year = 2018
+lstr_dt_values.li_hour = 0
+lstr_dt_values.li_min = 12
+lstr_dt_values.li_sec = 33
+f_format_datetime_string_ext(true, str_dt_values,true,true,'/',false,false,false,false,false) = "03/12/2018"
+f_format_datetime_string_ext(true, str_dt_values,true,true,'/',true,true,true,true,true) = "03/12/18 00:12:33"
+*/
+/*############################################################################################################*/
+
+string ls_date
+string ls_time
+integer li_day
+integer li_month
+integer li_year
+integer li_hour
+integer li_min
+integer li_sec
+string ls_month
+string ls_day
+string ls_year
+string ls_hour
+string ls_minute
+string ls_second
+if(lb_use_dt_components = true) then
+	li_day = as_dtvals.li_day
+	li_month = as_dtvals.li_month
+	li_year = as_dtvals.li_year
+	li_hour = as_dtvals.li_hour
+	li_min = as_dtvals.li_min
+	li_sec = as_dtvals.li_sec
+else
+	li_day = day(date(today()))
+	li_month = month(date(today()))
+	li_year = year(date(today()))
+	li_hour = hour(time(now()))
+	li_min = minute(time(now()))
+	li_sec = second(time(now()))
+end if
+ls_month = f_lpad(string(li_month), 2, '0')
+ls_day = f_lpad(string(li_day), 2, '0')
+ls_year = string(li_year)
+if(lb_2digit_year = true) then
+	ls_year = mid(ls_year, 3, 2)
+end if
+ls_hour = f_lpad(string(li_hour), 2, '0')
+ls_minute = f_lpad(string(li_min), 2, '0')
+ls_second = f_lpad(string(li_sec), 2, '0')
+if(lb_format_date_mmddyy = true) then //date = mm/dd/yyyy
+	ls_date = ls_month
+	if(lb_include_date_delim = true) then
+		ls_date += ls_date_delim
+	end if
+	ls_date += ls_day
+	if(lb_include_date_delim = true) then
+		ls_date += ls_date_delim
+	end if
+	ls_date += ls_year
+else //date = dd/mmm/yyyy
+	ls_date = ls_day
+	if(lb_include_date_delim = true) then
+		ls_date += ls_date_delim
+	end if
+	ls_month = f_convert_month(ls_month, false)
+	ls_date += ls_month
+	if(lb_include_date_delim = true) then
+		ls_date += ls_date_delim
+	end if
+	ls_date += ls_year
+end if
+ls_time = ls_hour
+if(lb_include_time_delim = true) then
+	ls_time += ":"
+end if
+ls_time += ls_minute
+if(lb_include_time_secs = true) then
+	if(lb_include_time_delim = true) then
+		ls_time += ":"
+	end if
+	ls_time += ls_second	
+end if
+string ls_datetime
+ls_datetime = ls_date
+if(lb_include_time_component = true) then
+	if(lb_include_date_time_space = true) then
+		ls_datetime += " "
+	end if
+	ls_datetime += ls_time
+end if
+return ls_datetime
+end function
+

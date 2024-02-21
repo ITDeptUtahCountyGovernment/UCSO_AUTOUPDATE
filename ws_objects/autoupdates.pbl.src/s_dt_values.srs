@@ -1,0 +1,10 @@
+﻿$PBExportHeader$s_dt_values.srs
+global type s_dt_values from structure
+	integer		li_month
+	integer		li_day
+	integer		li_year
+	integer		li_hour
+	integer		li_min
+	integer		li_sec
+end type
+

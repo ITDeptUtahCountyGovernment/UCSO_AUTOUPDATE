@@ -1,0 +1,30 @@
+﻿$PBExportHeader$f_extract_whole_decimal_from_string.srf
+global type f_extract_whole_decimal_from_string from function_object
+end type
+
+forward prototypes
+global function long f_extract_whole_decimal_from_string (string ls_value, ref decimal ldec_dpart)
+end prototypes
+
+global function long f_extract_whole_decimal_from_string (string ls_value, ref decimal ldec_dpart);long ll_whole_part
+ll_whole_part = 0
+ldec_dpart = 0.0
+if(f_len(ls_value) > 0) then
+    string ls_whole_part
+	string ls_decimal_part
+	integer li_pos
+	li_pos = pos(ls_value, ".")
+	if(li_pos > 0) then
+		ls_whole_part = trim(left(ls_value, li_pos - 1))
+		ls_decimal_part = trim(mid(ls_value, li_pos))
+		ll_whole_part = long(ls_whole_part)
+		ldec_dpart = dec(ls_decimal_part)
+	else
+		if(IsNumber(ls_value) = true) then
+			ll_whole_part = long(ls_value)
+		end if
+	end if
+end if	  
+return ll_whole_part	  
+end function
+

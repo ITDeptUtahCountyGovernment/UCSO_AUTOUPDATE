@@ -1,0 +1,21 @@
+﻿$PBExportHeader$f_len.srf
+global type f_len from function_object
+end type
+
+forward prototypes
+global function integer f_len (string ls_instring)
+end prototypes
+
+global function integer f_len (string ls_instring);if(IsNull(ls_instring) = true) then
+	ls_instring = ""
+end if
+//if ls_instring only has spaces then skip trim
+integer li_space_count
+li_space_count = 0
+li_space_count = f_count_num_characters(ls_instring, string(char(32)))
+if(len(ls_instring) <> li_space_count) then
+	ls_instring = trim(ls_instring)
+end if
+return len(ls_instring)
+end function
+

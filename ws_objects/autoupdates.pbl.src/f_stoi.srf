@@ -1,0 +1,19 @@
+﻿$PBExportHeader$f_stoi.srf
+global type f_stoi from function_object
+end type
+
+forward prototypes
+global function integer f_stoi (string ls_value)
+end prototypes
+
+global function integer f_stoi (string ls_value);//converts string to integer
+integer li_return
+li_return = 0
+if(IsNumber(ls_value) = true) then
+	li_return = integer(ls_value)
+end if
+return li_return
+
+
+end function
+

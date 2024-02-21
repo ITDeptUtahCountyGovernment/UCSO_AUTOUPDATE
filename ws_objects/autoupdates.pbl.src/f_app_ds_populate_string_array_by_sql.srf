@@ -1,0 +1,152 @@
+﻿$PBExportHeader$f_app_ds_populate_string_array_by_sql.srf
+global type f_app_ds_populate_string_array_by_sql from function_object
+end type
+
+forward prototypes
+global function integer f_app_ds_populate_string_array_by_sql (ref string ls_array[], string ls_sql, integer li_numeric_pad_len, string ls_delim, boolean lb_compress_string_spacing, ref transaction tr_sqlca)
+end prototypes
+
+global function integer f_app_ds_populate_string_array_by_sql (ref string ls_array[], string ls_sql, integer li_numeric_pad_len, string ls_delim, boolean lb_compress_string_spacing, ref transaction tr_sqlca);//prototype: integer li_count = f_app_ds_populate_string_array_by_sql(ref ls_array, ls_sql, li_num_pad_len, ls_delimtouse, lb_compress_string_spaceing, ref sqlca)
+integer li_return
+integer li_populated_count
+li_return = 0 //default to no records found
+if(f_len(ls_sql) > 0) then
+	datastore ds 
+	string ls_sql_select
+	string ls_syntax
+	string ls_errors
+	long ll_rows
+	ds = create datastore
+	ls_sql_select = ls_sql 
+	ls_syntax = tr_sqlca.SyntaxFromSql(ls_sql, "Style(type=Form)", ls_errors)
+	if(len(ls_errors) = 0) then 
+		ds.create(ls_syntax, ls_errors)
+		if len(ls_errors) = 0 then
+			ds.setsqlselect(ls_sql)
+			ds.SetTransObject(tr_sqlca)
+			ds.Retrieve("")
+			ll_rows = ds.RowCount()			
+			if(ll_rows > 0) then
+				integer li_num_alloc
+				li_num_alloc = f_allocate_string_array(integer(ll_rows), ref ls_array)
+				if(li_num_alloc = integer(ll_rows)) then
+					ds.accepttext()
+					long ll_row
+					integer li_Count
+					integer li_Col
+					string ls_col_data
+					string ls_col_len
+					integer li_start_pos
+					integer li_char_len
+					integer li_col_len
+					string ls_adata
+					for ll_row = 1 to ll_rows
+						Yield()
+						string lsa_Cols[]
+						string lsa_ColsType[]
+						string lsa_ColsLen[]
+						ls_adata = ""
+						//////////////////////////////////////////////////////////
+						//// code to get all the column names of the current ds //
+						//////////////////////////////////////////////////////////
+						li_Count = Integer( ds.Object.DataWindow.Column.Count ) 
+						FOR li_Col = 1 TO li_Count
+							ls_col_data = ""
+							ls_col_len = ""
+							lsa_Cols[li_Col] = ds.Describe( "#" + String( li_Col ) + ".Name" )
+							if(lsa_Cols[li_Col] <> "!") then
+								lsa_ColsType[li_Col] = ds.Describe( "#" + String( li_Col ) + ".ColType" )
+								if(lsa_ColsType[li_Col] <> "!") then
+									if(match(upper(lsa_ColsType[li_Col]), "CHAR(") = true) then
+										//extract char column length
+										li_start_pos = pos(lsa_ColsType[li_Col], "(")
+										if(li_start_pos > 1) then
+											li_start_pos = li_start_pos + 1
+											li_char_len = len(lsa_ColsType[li_Col])
+											li_char_len = (li_char_len - li_start_pos)
+											ls_col_len = mid(lsa_ColsType[li_Col], li_start_pos, li_char_len)
+										else 
+											ls_col_len = string(li_numeric_pad_len)
+										end if
+										ls_col_data = ds.getitemstring(ll_row, lsa_Cols[li_Col])
+										if(IsNull(ls_col_data) = true) then
+											ls_col_data = ""
+										else
+											//replace all comma's with tilde
+											ls_col_data = f_replace_chars_in_string(ls_col_data, ",", "-")
+										end if
+									elseif((match(upper(trim(lsa_ColsType[li_Col])),"DECIMAL") = true) or ((match(upper(trim(lsa_ColsType[li_Col])), "NUMBER") = true))) then
+										if(match(upper(trim(lsa_ColsType[li_Col])),"DECIMAL") = true) then
+											ls_col_data = string(ds.getitemdecimal(ll_row, lsa_Cols[li_col])) 
+										else
+											ls_col_data = string(ds.GetItemNumber(ll_row, lsa_Cols[li_Col]))
+										end if
+										if(IsNull(ls_col_data) = true) then
+											ls_col_data = ""
+										end if
+										ls_col_len = string(li_numeric_pad_len)
+									elseif((match(upper(trim(lsa_ColsType[li_Col])), "DATETIME") = true)) then
+										ls_col_data = string(ds.getitemdatetime(ll_row, lsa_Cols[li_Col])) 
+										if(IsNull(ls_col_data) = true) then
+											ls_col_data = ""
+										end if										
+										ls_col_len = string(li_numeric_pad_len)
+									elseif((match(upper(trim(lsa_ColsType[li_Col])), "DATE") = true)) then
+										ls_col_data = string(ds.getitemdate(ll_row, lsa_Cols[li_Col])) 
+										if(IsNull(ls_col_data) = true) then
+											ls_col_data = ""
+										end if										
+										ls_col_len = string(li_numeric_pad_len)	
+									elseif((match(upper(trim(lsa_ColsType[li_Col])), "LONG") = true)) then
+										ls_col_data = string(ds.getitemnumber(ll_row, lsa_Cols[li_Col])) 
+										if(IsNull(ls_col_data) = true) then
+											ls_col_data = ""
+										end if										
+										ls_col_len = string(li_numeric_pad_len)	
+									elseif((match(upper(trim(lsa_ColsType[li_Col])), "TIME") = true)) then
+										ls_col_data = string(ds.getitemtime(ll_row, lsa_Cols[li_Col])) 
+										if(IsNull(ls_col_data) = true) then
+											ls_col_data = ""
+										end if										
+										ls_col_len = string(li_numeric_pad_len)	
+									end if
+									if(f_len(ls_col_len) > 0) then
+										li_col_len = integer(ls_col_len)
+//										if(li_col_len > li_numeric_pad_len) then
+//											ls_col_data = Left(ls_col_data, li_numeric_pad_len)
+//										end if
+										ls_col_data = f_rpad(trim(ls_col_data), li_col_len, " ")
+//										if(lb_compress_string_spacing = true) then
+//											ls_col_data = f_compress_string_spacing(ls_col_data, " ", 1)
+//										end if
+										if(lb_compress_string_spacing = true) then
+											ls_col_data = trim(ls_col_data) //f_trimstr_ext(ls_col_data, " ", true)
+										end if
+										ls_adata += ls_col_data
+										if(f_len_ext(ls_delim) > 0) then
+											if(li_Col < li_Count) then
+												ls_adata += ls_delim
+											end if
+										end if
+									end if
+								end if
+							end if
+						NEXT //end col loop
+						////////////////////////////////////////////////////////
+						//////////////////////////////////////////////////////////
+						//////////////////////////////////////////////////////////
+						ls_array[ll_row] = ls_adata
+						li_populated_count++
+					next
+				end if
+			end if
+		end if
+	end if
+	destroy ds	
+end if
+if(li_populated_count > 0) then
+	li_return = UpperBound(ls_array)
+end if
+return li_return
+end function
+

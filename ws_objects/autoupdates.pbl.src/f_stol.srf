@@ -1,0 +1,17 @@
+﻿$PBExportHeader$f_stol.srf
+global type f_stol from function_object
+end type
+
+forward prototypes
+global function long f_stol (string ls_value)
+end prototypes
+
+global function long f_stol (string ls_value);//converts string to long
+long ll_return
+ll_return = 0
+if(IsNumber(ls_value) = true) then
+	ll_return = long(ls_value)
+end if
+return ll_return
+end function
+
