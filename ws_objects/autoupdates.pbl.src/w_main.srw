@@ -38,7 +38,7 @@ end forward
 
 global type w_main from window
 integer width = 2386
-integer height = 1708
+integer height = 1764
 boolean titlebar = true
 string title = "Auto Update Database Support"
 boolean controlmenu = true
@@ -74,8 +74,8 @@ string gs_dow
 string gs_status
 integer li_default_interval
 boolean gb_stopclicked
+integer gi_rowid
 end variables
-
 on w_main.create
 this.st_8=create st_8
 this.st_7=create st_7
@@ -132,6 +132,10 @@ end on
 
 event timer;Timer(0)
 if(gb_stoprunning = false) then
+	integer li_lb_begin_count
+	integer li_lb_end_count
+	li_lb_begin_count = lb_status.totalitems()
+	li_lb_end_count = 0
 	string ls_timer_interval
 	ls_timer_interval = sle_interval.text
 	integer li_timer_interval
@@ -378,6 +382,16 @@ if(gb_stoprunning = false) then
 		pb_close.enabled = true
 	end if
 	Yield()
+	li_lb_end_count = lb_status.totalitems()
+	if(li_lb_end_count > li_lb_begin_count) then
+		integer li_scroll_index
+		li_scroll_index = li_lb_end_count
+		li_scroll_index = (li_scroll_index - 10)
+		if(li_scroll_index > 0) then
+			lb_status.SetTop(li_scroll_index)
+		end if
+	end if	
+	Yield()
 	if(bEnableTimer = true) then
 		if(bWaitForIntervalTimeout = true) then
 			integer li_wait_time
@@ -390,12 +404,14 @@ if(gb_stoprunning = false) then
 		Timer(li_timer_interval)
 	end if
 end if 
+
 end event
 
 event open;gb_stoprunning = true
 pb_start.enabled = true
 pb_stop.enabled = false
 li_default_interval = 2
+gi_rowid = 0
 end event
 
 type st_8 from statictext within w_main
@@ -453,7 +469,7 @@ type lb_status from listbox within w_main
 integer x = 14
 integer y = 700
 integer width = 2309
-integer height = 876
+integer height = 928
 integer taborder = 50
 integer textsize = -10
 integer weight = 700
