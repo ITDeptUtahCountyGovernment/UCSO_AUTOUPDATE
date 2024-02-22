@@ -2,6 +2,10 @@
 forward
 global type w_main from window
 end type
+type sle_last_ran from singlelineedit within w_main
+end type
+type st_9 from statictext within w_main
+end type
 type st_8 from statictext within w_main
 end type
 type st_7 from statictext within w_main
@@ -48,6 +52,8 @@ boolean resizable = true
 long backcolor = 67108864
 string icon = "AppIcon!"
 boolean center = true
+sle_last_ran sle_last_ran
+st_9 st_9
 st_8 st_8
 st_7 st_7
 st_6 st_6
@@ -76,7 +82,10 @@ integer li_default_interval
 boolean gb_stopclicked
 integer gi_rowid
 end variables
+
 on w_main.create
+this.sle_last_ran=create sle_last_ran
+this.st_9=create st_9
 this.st_8=create st_8
 this.st_7=create st_7
 this.st_6=create st_6
@@ -93,7 +102,9 @@ this.st_2=create st_2
 this.sle_interval=create sle_interval
 this.st_1=create st_1
 this.pb_close=create pb_close
-this.Control[]={this.st_8,&
+this.Control[]={this.sle_last_ran,&
+this.st_9,&
+this.st_8,&
 this.st_7,&
 this.st_6,&
 this.lb_status,&
@@ -112,6 +123,8 @@ this.pb_close}
 end on
 
 on w_main.destroy
+destroy(this.sle_last_ran)
+destroy(this.st_9)
 destroy(this.st_8)
 destroy(this.st_7)
 destroy(this.st_6)
@@ -148,7 +161,8 @@ if(gb_stoprunning = false) then
 	ls_sysdatetime = ""
 	dt_sysdatetime = f_get_system_datetime(ls_sysdatetime)
 	ls_sysdatetime = string(dt_sysdatetime)
-	lb_status.additem(ls_sysdatetime + " Start timer loop")
+	//lb_status.additem(ls_sysdatetime + " Start timer loop")
+	sle_last_ran.text = ls_sysdatetime
 	boolean bDoUpdates
 	bDoUpdates = false
 	boolean bEnableTimer
@@ -413,6 +427,39 @@ pb_stop.enabled = false
 li_default_interval = 2
 gi_rowid = 0
 end event
+
+type sle_last_ran from singlelineedit within w_main
+integer x = 1495
+integer y = 596
+integer width = 581
+integer height = 92
+integer taborder = 30
+integer textsize = -8
+integer weight = 700
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+borderstyle borderstyle = stylelowered!
+end type
+
+type st_9 from statictext within w_main
+integer x = 1179
+integer y = 612
+integer width = 302
+integer height = 52
+integer textsize = -8
+integer weight = 700
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+long textcolor = 33488896
+long backcolor = 67108864
+string text = "Last Ran:"
+alignment alignment = right!
+boolean focusrectangle = false
+end type
 
 type st_8 from statictext within w_main
 integer x = 873
