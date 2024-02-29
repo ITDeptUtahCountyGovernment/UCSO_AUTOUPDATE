@@ -24,6 +24,17 @@ string gs_dbconnection
 string gs_ip_addr
 string gs_computername
 transaction SQLCA_FM
+integer gi_bd_span_from
+integer gi_bd_span_to
+integer gi_bd_no_display
+integer gi_bd_before_days
+integer gi_bd_after_days
+integer gi_bd_today
+
+//nrtnvalue = 0 do not display birthday
+//          = 1 birthday within 7 days
+//          = 2 birthday past 7days
+//          = 3 on birthday
 
 end variables
 global type autoupdates from application
@@ -122,6 +133,23 @@ gs_tab = "~t"
 gi_pad_len = 120
 gb_compress = true
 gs_winuser = Trim(Upper(gs_winuser))
+
+string ls_temp_parameter
+ls_temp_parameter = f_get_settings_parameter("SYSTEM","BD_SPAN_FROM","ndata", ref sqlca)
+gi_bd_span_from = f_stoi(ls_temp_parameter)
+ls_temp_parameter = f_get_settings_parameter("SYSTEM","BD_SPAN_TO","ndata", ref sqlca)
+gi_bd_span_to = f_stoi(ls_temp_parameter)
+
+// 0 do not display birthday
+// 1 birthday within 7 days
+// 2 birthday past 7days
+// 3 on birthday
+gi_bd_no_display = 0
+gi_bd_before_days = 1
+gi_bd_after_days = 2
+gi_bd_today = 3
+
+
 
 open(w_main)
 end event

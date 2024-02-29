@@ -1,0 +1,104 @@
+﻿$PBExportHeader$f_compress_string.srf
+global type f_compress_string from function_object
+end type
+
+forward prototypes
+global function string f_compress_string (string ls_instr, string ls_compress_string)
+end prototypes
+
+global function string f_compress_string (string ls_instr, string ls_compress_string);string ls_return
+integer li_instr_len
+integer li_cs_len
+integer li_add_count
+li_add_count = 0
+ls_return = ls_instr
+li_instr_len = f_len(ls_instr)
+li_cs_len = f_len(ls_compress_string)
+if(li_cs_len = 0) then
+	li_cs_len = len(ls_compress_string)
+end if
+if((li_instr_len > 0) and (li_cs_len > 0)) then
+	integer li_start_pos
+	string ls_extracted
+	string ls_mid_str
+	integer li_found_pos
+	integer li_extract_len
+	integer li_asc
+	integer li_comp_asc
+	integer li_temp_pos
+	integer li_temp_start_pos
+	boolean lb_ok_to_add
+	ls_extracted = ""
+	li_comp_asc = 0
+	if(f_len(ls_compress_string) = 1) then
+		li_comp_asc = asc(ls_compress_string)
+	end if
+	li_start_pos = 1
+	//
+	long ll_debug_count
+	ll_debug_count = 0
+	//
+	li_found_pos = pos(ls_instr, ls_compress_string, li_start_pos)
+	if(li_found_pos > 0) then  //found one ls_compress_string within ls_instr
+		do
+			li_extract_len = li_found_pos - li_start_pos
+			if((li_extract_len = 0) and (f_len(ls_instr) = 1)) then
+				li_extract_len = 1
+			end if
+			ls_mid_str = mid(ls_instr, li_start_pos, li_extract_len)
+			lb_ok_to_add = true
+			if((f_len(ls_mid_str) = 1) and (f_len(ls_compress_string) = 1)) then
+				li_asc = asc(ls_mid_str)
+				if(li_comp_asc > 0) then
+					if(li_asc = li_comp_asc) then
+						lb_ok_to_add = false
+					end if
+				end if
+			end if
+			if(lb_ok_to_add = true) then
+				li_add_count++
+				if((li_add_count = 2) and (ls_extracted <> "")) then
+					ls_extracted += " "
+				end if
+				ls_extracted += ls_mid_str
+			end if
+			li_start_pos = li_found_pos + li_cs_len
+			li_found_pos = pos(ls_instr, ls_compress_string, li_start_pos) 
+			if(li_start_pos > 1000) then
+				ll_debug_count = 1
+			elseif(li_start_pos > 2000) then
+				ll_debug_count = 2
+			elseif(li_start_pos > 10000) then
+				ll_debug_count = 3
+			end if
+		loop while li_found_pos > 0
+		//add last character if validation passes
+		li_extract_len = (li_instr_len - li_start_pos) + 1
+		if((li_extract_len = 0) and (f_len(ls_instr) = 1)) then
+			li_extract_len = 1
+		end if
+		ls_mid_str = mid(ls_instr, li_start_pos, li_extract_len)
+		lb_ok_to_add = true
+		if((f_len(ls_mid_str) = 1) and (f_len(ls_compress_string) = 1)) then	
+			li_asc = asc(ls_mid_str)
+			if(li_comp_asc > 0) then
+				if(li_asc = li_comp_asc) then
+					lb_ok_to_add = false
+				end if
+			end if
+		end if
+		if(lb_ok_to_add = true) then
+			ls_extracted += ls_mid_str
+		end if
+	else //nothing found to replace so just return ls_instr
+		ls_extracted = ls_instr 
+	end if
+end if
+if(f_len(ls_extracted) > 0) then
+	ls_return = f_compress_string_spacing(ls_extracted, " ", 1)
+else
+	ls_return = ""
+end if
+return ls_return
+end function
+

@@ -1,0 +1,17 @@
+﻿$PBExportHeader$f_stodec.srf
+global type f_stodec from function_object
+end type
+
+forward prototypes
+global function decimal f_stodec (string ls_value)
+end prototypes
+
+global function decimal f_stodec (string ls_value);//converts string to decimal
+dec ldec_return
+ldec_return = 0
+if(IsNumber(ls_value) = true) then
+	ldec_return = dec(ls_value)
+end if
+return ldec_return
+end function
+

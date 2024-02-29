@@ -2,6 +2,22 @@
 forward
 global type w_main from window
 end type
+type sle_num_errors from singlelineedit within w_main
+end type
+type st_13 from statictext within w_main
+end type
+type st_12 from statictext within w_main
+end type
+type sle_num_updated from singlelineedit within w_main
+end type
+type st_11 from statictext within w_main
+end type
+type sle_num_processed from singlelineedit within w_main
+end type
+type st_10 from statictext within w_main
+end type
+type sle_to_process from singlelineedit within w_main
+end type
 type sle_last_ran from singlelineedit within w_main
 end type
 type st_9 from statictext within w_main
@@ -41,8 +57,8 @@ end type
 end forward
 
 global type w_main from window
-integer width = 2386
-integer height = 1764
+integer width = 3922
+integer height = 3560
 boolean titlebar = true
 string title = "Auto Update Database Support"
 boolean controlmenu = true
@@ -52,6 +68,14 @@ boolean resizable = true
 long backcolor = 67108864
 string icon = "AppIcon!"
 boolean center = true
+sle_num_errors sle_num_errors
+st_13 st_13
+st_12 st_12
+sle_num_updated sle_num_updated
+st_11 st_11
+sle_num_processed sle_num_processed
+st_10 st_10
+sle_to_process sle_to_process
 sle_last_ran sle_last_ran
 st_9 st_9
 st_8 st_8
@@ -84,6 +108,14 @@ integer gi_rowid
 end variables
 
 on w_main.create
+this.sle_num_errors=create sle_num_errors
+this.st_13=create st_13
+this.st_12=create st_12
+this.sle_num_updated=create sle_num_updated
+this.st_11=create st_11
+this.sle_num_processed=create sle_num_processed
+this.st_10=create st_10
+this.sle_to_process=create sle_to_process
 this.sle_last_ran=create sle_last_ran
 this.st_9=create st_9
 this.st_8=create st_8
@@ -102,7 +134,15 @@ this.st_2=create st_2
 this.sle_interval=create sle_interval
 this.st_1=create st_1
 this.pb_close=create pb_close
-this.Control[]={this.sle_last_ran,&
+this.Control[]={this.sle_num_errors,&
+this.st_13,&
+this.st_12,&
+this.sle_num_updated,&
+this.st_11,&
+this.sle_num_processed,&
+this.st_10,&
+this.sle_to_process,&
+this.sle_last_ran,&
 this.st_9,&
 this.st_8,&
 this.st_7,&
@@ -123,6 +163,14 @@ this.pb_close}
 end on
 
 on w_main.destroy
+destroy(this.sle_num_errors)
+destroy(this.st_13)
+destroy(this.st_12)
+destroy(this.sle_num_updated)
+destroy(this.st_11)
+destroy(this.sle_num_processed)
+destroy(this.st_10)
+destroy(this.sle_to_process)
 destroy(this.sle_last_ran)
 destroy(this.st_9)
 destroy(this.st_8)
@@ -171,11 +219,15 @@ if(gb_stoprunning = false) then
 	integer li_num_parse_items
 	boolean bWaitForIntervalTimeout
 	bWaitForIntervalTimeout = false
+	string ls_sql_err_text
 	//------------------------------------------------------------------------
 	string ls_currdate
 	ls_currdate = ""
 	datetime dt_currdate
 	dt_currdate = f_get_system_datetime(ls_currdate) // 2/21/2024 07:24:00
+	integer li_sysdate_year
+	li_sysdate_year = 0
+	li_sysdate_year = Year(Date(dt_currdate))
 	ls_currdate = String(dt_currdate) // 2/21/2024 07:34:00
 	integer li_startday
 	li_startday = DayNumber(date(dt_currdate))
@@ -197,6 +249,12 @@ if(gb_stoprunning = false) then
 	integer li_currminute
 	integer li_currsecond
 	boolean bOkToContinue
+	decimal dec_currdate_jd
+	boolean bUpdatedob
+	boolean bUpdatedobjd
+	boolean bUpdatedobupdatejd
+	boolean bUpdatedobshort
+	dec_currdate_jd = f_get_julian_date_value1900(dt_currdate, false)
 	bOkToContinue = false
 	int spos	
 	//====================================================================
@@ -265,7 +323,7 @@ if(gb_stoprunning = false) then
 		bWaitForIntervalTimeout = true
 		//do update
 		string ls_sql
-		ls_sql = "select empno, dob, dobjd, empname, active from sns_employees where ((dobjd is null) or (dobjd = 0)) and active = 1 and empno > 0 and empno < 19999"
+		ls_sql = "select empno, dob, dobjd, dispbd, dispbdupdatejd, empname, active, dobshort from sns_employees where active = 1 and ((empno > 0) and (empno < 19999)) and ((dobjd is null) or (dobjd = 0)) and dispbdupdatejd < " + string(dec_currdate_jd)
 		string lsa_dobs[]
 		integer li_num_dobs
 		li_num_dobs = f_app_ds_populate_string_array_by_sql(ref lsa_dobs, ls_sql, gi_pad_len, gs_delim, gb_compress, ref sqlca)
@@ -276,37 +334,59 @@ if(gb_stoprunning = false) then
 			//---------------------
 			long ll_empno
 			string ls_dob
-			long ll_dobjd
 			string ls_empname
 			integer li_num_updated
 			integer li_num_errors
+			string ls_format
+			string ls_month
+			string ls_day
+			string ls_year
+			string ls_hour
+			string ls_minute
+			string ls_second
+			string ls_date
+			string ls_time
+			integer li_rtn_status
+			string ls_new_dob
+			decimal dec_jddob
+			decimal dec_dispbdjd
+			decimal dec_dispbdupdatejd
+			date dt_date
+			datetime dt_datetime
+			integer li_chk_year
+			integer li_dob_len
+			integer nRtnDispBd
+			string ls_update_sql	
+			string ls_short_birthday
+			string ls_dobshort
 			//---------------------
 			li_num_updated = 0
 			li_num_errors = 0
 			//---------------------
+			sle_to_process.text = string(li_num_dobs)
 			for li_loop = 1 to li_num_dobs
 				ls_loopdata = lsa_dobs[li_loop]
 				li_num_parse_items = f_parseoutstring_ext(ls_loopdata, gs_delim, ref lsa_parseoutdata)
-				if(li_num_parse_items >= 4) then
+				if(li_num_parse_items >= 8) then
 					ll_empno = f_stol(lsa_parseoutdata[1])
 					if(ll_empno > 0) then
 						ls_empname = lsa_parseoutdata[4]
-						string ls_format
-						string ls_month
-						string ls_day
-						string ls_year
-						string ls_hour
-						string ls_minute
-						string ls_second
-						string ls_date
-						string ls_time
-						integer li_rtn_status
-						string ls_new_dob
-						decimal dec_jddob
-						date dt_date
-						datetime dt_datetime
-						integer li_chk_year
-						integer li_dob_len
+						ls_dobshort = trim(lsa_parseoutdata[8])
+//						if(ll_empno = 16703) then 
+//							//2/21
+//							li_stop = 0
+//						elseif(ll_empno = 17961) then
+//							//2/22
+//							li_stop = 0
+//						elseif(ll_empno = 17134) then
+//							//2/28
+//							li_stop = 0
+//						elseif(ll_empno = 16703) then
+//							//3/3
+//							li_stop = 0
+//						end if
+						
+						
 						//--------------------------------
 						ls_format = "DD-MMM-YYYY" //INPUT FORMAT 
 						ls_month = ""
@@ -318,21 +398,53 @@ if(gb_stoprunning = false) then
 						ls_date = ""
 						ls_time = ""
 						ls_new_dob = ""
-						//--------------------------------
+						dec_jddob = 0
+						dec_dispbdjd = 0
+						dec_dispbdupdatejd = 0
+						bUpdatedob = false
+						bUpdatedobjd = false
+						bUpdatedobupdatejd = false
+						bUpdatedobshort = false
+						nRtnDispBd = 0
+						ls_update_sql = ""
+						ls_short_birthday = ""
+						//---------------	-----------------
 						ls_dob = trim(lsa_parseoutdata[2])
-						ll_dobjd = f_stol(lsa_parseoutdata[3])
-						ls_empname = trim(lsa_parseoutdata[4])
-						if(((IsNull(ls_dob) = true) or (ls_dob = "")) or (ll_dobjd = 0)) then
+						if((IsNull(ls_dob) = true) or (ls_dob = "")) then
+							ls_dob = ""
 							//get dob from fm.io_employee
 							//
-							select dob into :ls_dob from fm.io_employee_add where empno = :ll_empno using SQLCA_FM;
+							select dob into :ls_dob from io_employee_add where empno = :ll_empno using SQLCA_FM;
 							//
-							if(IsNull(ls_dob) = true) then
-								ls_dob = ""
-								lb_status.additem(ls_empname + " empno: " + string(ll_empno) + " DOB is blank")
-							else
-								//convert ls_dob from 06-JAN-86 to MM/DD/YYYY
-								li_rtn_status = f_extract_sysdate_time_components_ext(ls_dob, ls_format, ref ls_month, ref ls_day, ref ls_year, ref ls_hour, ref ls_minute, ref ls_second, ref ls_date, ref ls_time)
+							if((IsNull(ls_dob) = true) or (ls_dob = "")) then
+								lb_status.additem("No DOB found in io_employee_add table. empno=" + string(ll_empno) + " empname=" + ls_empname)
+								continue //skip to next record to update/check
+							end if
+							bUpdatedob = true
+						end if
+						ls_empname = trim(lsa_parseoutdata[6])
+						dec_jddob = f_stodec(lsa_parseoutdata[3])						
+						dec_dispbdjd = f_stodec(lsa_parseoutdata[4])
+						dec_dispbdupdatejd = f_stodec(lsa_parseoutdata[5])
+						if(f_len_ext(ls_dobshort) = 0) then
+							bUpdatedobshort = true
+						end if
+						if((dec_jddob = 0) or (dec_dispbdjd = 0) or (dec_dispbdupdatejd = 0)) then
+							if(dec_dispbdjd = 0) then
+								bUpdatedobjd = true
+							end if
+							if(dec_dispbdupdatejd = 0) then
+								bUpdatedobupdatejd = true
+							end if		
+							if(bUpdatedob = true) or (bUpdatedobjd = true) or (bUpdatedobupdatejd = true) then
+								if(f_len_ext(ls_dob) < 10) then
+									//convert ls_dob from 06-JAN-86 to MM/DD/YYYY if not already
+									li_rtn_status = f_extract_sysdate_time_components_ext_mod(ls_dob, ls_format, li_sysdate_year, ref ls_month, ref ls_day, ref ls_year, ref ls_hour, ref ls_minute, ref ls_second, ref ls_date, ref ls_time)
+								else
+									ls_format = "MM/DD/YYYY"
+									li_rtn_status = f_extract_sysdate_time_components_ext_mod(ls_dob, ls_format, li_sysdate_year, ref ls_month, ref ls_day, ref ls_year, ref ls_hour, ref ls_minute, ref ls_second, ref ls_date, ref ls_time)									
+									ls_new_dob = ls_dob									
+								end if
 								s_dt_values lstr_dt_values
 								ls_month = f_convert_month(ls_month, true)
 								li_chk_year = f_stoi(ls_year)
@@ -342,33 +454,77 @@ if(gb_stoprunning = false) then
 								lstr_dt_values.li_hour = f_stoi(ls_hour)
 								lstr_dt_values.li_min = f_stoi(ls_minute)
 								lstr_dt_values.li_sec = f_stoi(ls_second)
-								ls_new_dob = f_format_datetime_string_ext(true, lstr_dt_values,true,true,'/',false,false,false,false,false)
+								if(f_len_ext(ls_new_dob) = 0) then
+									ls_new_dob = f_format_datetime_string_ext(true, lstr_dt_values,true,true,'/',false,false,false,false,false)
+								end if
 								li_dob_len = f_len_ext(ls_new_dob)
 								if(li_dob_len = 10) then
+   								ls_short_birthday = mid(ls_new_dob, 1, 5)
 									dt_date = date(ls_new_dob)
 									if(f_is_valid_date(dt_date) = true) then
 										dt_datetime = datetime(dt_date)
-										dec_jddob = f_get_julian_date_value_ext(dt_datetime)
-										//lb_status
-										//
-										string ls_update_sql
-										ls_update_sql = "update sns_employees set dobjd = " + string(dec_jddob) + " where empno = " + string(ll_empno)
-										//
-										execute immediate :ls_update_sql using sqlca;
-										//
-										//lb_status.additem(ls_update_sql)
-										if(sqlca.sqlcode <> -1) then
-											//
-											commit using sqlca;
-											//
-											li_num_updated++
-										else
-											//
-											rollback using sqlca;
-											//
-											li_num_errors++
+										dec_jddob = f_get_julian_date_value1900(dt_datetime, false)			
+										//build update sql
+										ls_update_sql = "update sns_employees "
+										if(bUpdatedob = true) then
+											ls_update_sql += "set dob = '" + ls_new_dob + "' "
+										end if	
+										if(bUpdatedobjd = true) then
+											if(pos(ls_update_sql, "set") = 0) then
+												ls_update_sql += "set dobjd =" + string(dec_jddob) + " "
+											else
+												ls_update_sql += ", dobjd =" + string(dec_jddob) + " "
+											end if
+											nRtnDispBd = f_displayEmployeeBirthday(gi_bd_span_from, gi_bd_span_to, ls_short_birthday) 
+											if((nRtnDispBd <> 0) and (bUpdatedobjd = true)) then
+												dec_dispbdjd = dec_currdate_jd
+												if(pos(ls_update_sql, "set") = 0) then
+													ls_update_sql += "set dispbd = " + string(nRtnDispBd) + " "
+												else
+													ls_update_sql += ", dispbd = " + string(nRtnDispBd) + " "
+												end if
+											end if
 										end if
-									else
+										if(bUpdatedobupdatejd = true) then
+											dec_dispbdupdatejd = dec_currdate_jd
+											if(pos(ls_update_sql, "set") = 0) then
+												ls_update_sql += "set dispbdupdatejd =" + string(dec_dispbdupdatejd) + " "
+											else
+												ls_update_sql += ", dispbdupdatejd =" + string(dec_dispbdupdatejd) + " "
+											end if
+										end if
+										if(bUpdatedobshort = true) then
+											ls_dobshort = ls_short_birthday
+											if(pos(ls_update_sql, "set") = 0) then
+												ls_update_sql += "set dobshort = '" + ls_dobshort + "' "
+											else
+												ls_update_sql += ", dobshort = '" + ls_dobshort + "' "
+											end if
+										end if
+										if(pos(ls_update_sql, "set") = 0) then
+											lb_status.additem("invalid update sql. empno=" + string(ll_empno) + " empname=" + ls_empname)
+											continue //skip to next record to update/check
+										else
+											ls_update_sql += "where empno = " + string(ll_empno)
+											//
+											execute immediate :ls_update_sql using sqlca;
+											//
+											//lb_status.additem(ls_update_sql)
+											if(sqlca.sqlcode <> -1) then
+												//
+												commit using sqlca;
+   											//
+												li_num_updated++
+											else
+												ls_sql_err_text = sqlca.sqlerrtext
+												//
+												rollback using sqlca;
+												//
+												lb_status.additem("Error: " + ls_sql_err_text + ". empno=" + string(ll_empno) + " empname=" + ls_empname)
+												li_num_errors++
+											end if
+										end if
+   								else
 										lb_status.additem(ls_empname + " empno: " + string(ll_empno) + " newdob is not valid=" + ls_new_dob)
 									end if
 								else
@@ -378,6 +534,9 @@ if(gb_stoprunning = false) then
 						end if
 					end if //ll_empno > 0 chk
 				end if
+				sle_num_processed.text = string(li_loop)
+				sle_num_updated.text = string(li_num_updated)
+				sle_num_errors.text = string(li_num_errors)
 				Yield()
 			next
 			if((li_num_updated > 0) or (li_num_errors > 0)) then
@@ -426,11 +585,154 @@ pb_start.enabled = true
 pb_stop.enabled = false
 li_default_interval = 2
 gi_rowid = 0
+
+Timer(0)
 end event
 
-type sle_last_ran from singlelineedit within w_main
-integer x = 1495
+event close;Timer(0)
+Close(w_main)
+end event
+
+type sle_num_errors from singlelineedit within w_main
+integer x = 3383
+integer y = 580
+integer width = 288
+integer height = 100
+integer taborder = 30
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+long textcolor = 255
+string text = "0"
+borderstyle borderstyle = stylelowered!
+end type
+
+type st_13 from statictext within w_main
+integer x = 3035
 integer y = 596
+integer width = 338
+integer height = 64
+integer textsize = -10
+integer weight = 700
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+long textcolor = 255
+long backcolor = 67108864
+string text = "#Errors:"
+alignment alignment = right!
+boolean focusrectangle = false
+end type
+
+type st_12 from statictext within w_main
+integer x = 2373
+integer y = 604
+integer width = 338
+integer height = 64
+integer textsize = -10
+integer weight = 700
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+long textcolor = 33488896
+long backcolor = 67108864
+string text = "#Updated:"
+alignment alignment = right!
+boolean focusrectangle = false
+end type
+
+type sle_num_updated from singlelineedit within w_main
+integer x = 2720
+integer y = 588
+integer width = 288
+integer height = 100
+integer taborder = 20
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+string text = "0"
+borderstyle borderstyle = stylelowered!
+end type
+
+type st_11 from statictext within w_main
+integer x = 1678
+integer y = 604
+integer width = 370
+integer height = 64
+integer textsize = -10
+integer weight = 700
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+long textcolor = 33488896
+long backcolor = 67108864
+string text = "#Processed:"
+alignment alignment = right!
+boolean focusrectangle = false
+end type
+
+type sle_num_processed from singlelineedit within w_main
+integer x = 2057
+integer y = 588
+integer width = 288
+integer height = 100
+integer taborder = 20
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+string text = "0"
+borderstyle borderstyle = stylelowered!
+end type
+
+type st_10 from statictext within w_main
+integer x = 978
+integer y = 608
+integer width = 361
+integer height = 64
+integer textsize = -10
+integer weight = 700
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+long textcolor = 33488896
+long backcolor = 67108864
+string text = "To Process:"
+alignment alignment = right!
+boolean focusrectangle = false
+end type
+
+type sle_to_process from singlelineedit within w_main
+integer x = 1349
+integer y = 592
+integer width = 288
+integer height = 100
+integer taborder = 20
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+string text = "0"
+borderstyle borderstyle = stylelowered!
+end type
+
+type sle_last_ran from singlelineedit within w_main
+integer x = 1527
+integer y = 248
 integer width = 581
 integer height = 92
 integer taborder = 30
@@ -444,8 +746,8 @@ borderstyle borderstyle = stylelowered!
 end type
 
 type st_9 from statictext within w_main
-integer x = 1179
-integer y = 612
+integer x = 1211
+integer y = 264
 integer width = 302
 integer height = 52
 integer textsize = -8
@@ -464,7 +766,7 @@ end type
 type st_8 from statictext within w_main
 integer x = 873
 integer y = 264
-integer width = 507
+integer width = 334
 integer height = 64
 integer textsize = -8
 integer weight = 700
@@ -515,8 +817,8 @@ end type
 type lb_status from listbox within w_main
 integer x = 14
 integer y = 700
-integer width = 2309
-integer height = 928
+integer width = 3854
+integer height = 2704
 integer taborder = 50
 integer textsize = -10
 integer weight = 700
@@ -765,6 +1067,12 @@ long textcolor = 16777215
 long backcolor = 255
 end type
 
-event clicked;close(w_main)
+event clicked;if((gb_stoprunning = true) or (st_status.text = "WAITING")) then
+	Timer(0)
+	close(w_main)
+else
+	MessageBox("Notification", "Click the stop button to close!")
+end if
+
 end event
 

@@ -1,0 +1,222 @@
+﻿$PBExportHeader$f_displayemployeebirthday.srf
+global type f_displayemployeebirthday from function_object
+end type
+
+forward prototypes
+global function integer f_displayemployeebirthday (integer li_from_span, integer li_to_span, string ls_birthday)
+end prototypes
+
+global function integer f_displayemployeebirthday (integer li_from_span, integer li_to_span, string ls_birthday);//prototype: boolean bdisplaybd = displayEmployeeBirthday(integer li_from_span, integer li_to_span, string ls_birthday) 
+//ls_birthday must be in mm/dd format (len = 5)
+//nrtnvalue = 0 do not display birthday
+//          = 1 birthday within 7 days
+//          = 2 birthday past 7days
+//          = 3 on birthday
+integer nrtnvalue
+nrtnvalue = 0
+//ls_birthday = "03/06"
+if(f_len_ext(ls_birthday) = 5) then
+	datetime ldt_curr_datetime
+	string ls_curr_datetime
+	integer li_pos
+	string ls_curr_year
+	integer li_bd_year
+	string ls_full_birthday
+	datetime ldt_full_birthday
+	decimal dec_curr_jd_value
+	decimal dec_birthday_jd_value
+	decimal dec_minus7_jd_value
+	decimal dec_plus7_jd_value
+	decimal dec_nextyear_jd_value
+	string ls_nextyear
+	datetime ldt_nextyear
+	decimal dec_bdminus_curr_jd_value  // divide by 86400
+	decimal dec_bdplus_curr_jd_value   // divide by 86400
+	integer li_minus_value
+	integer li_plus_value
+	li_minus_value = li_from_span
+	li_plus_value = li_to_span
+	//calculate past and future days from today
+	ls_curr_datetime = ""
+	ldt_curr_datetime = f_get_system_datetime(ls_curr_datetime)
+	ls_curr_datetime = string(ldt_curr_datetime) //ie: 2/21/2024 12:11:00
+	li_pos = pos(ls_curr_datetime, " ")
+	if(li_pos > 0) then
+		ls_curr_datetime = mid(ls_curr_datetime, 1, (li_pos - 1))
+		//----------
+	   dec_curr_jd_value = f_get_julian_date_value1900(ldt_curr_datetime, false) //false=no seconds
+		//----------
+		ls_curr_year = mid(ls_curr_datetime, (len(ls_curr_datetime) - 3))
+		li_bd_year = f_stoi(ls_curr_year)
+		ls_full_birthday = ls_birthday + "/" + string(li_bd_year)
+		ls_nextyear = "1/1/" + string(li_bd_year + 1)
+		ldt_nextyear = datetime(ls_nextyear)
+		dec_nextyear_jd_value = f_get_julian_date_value1900(ldt_nextyear, false) //false=no seconds
+		ldt_full_birthday = datetime(ls_full_birthday)
+		dec_birthday_jd_value = f_get_julian_date_value1900(ldt_full_birthday, false) //false=no seconds
+		dec_minus7_jd_value = (dec_curr_jd_value - li_from_span)
+		dec_plus7_jd_value = (dec_curr_jd_value + li_to_span)
+		li_minus_value = (dec_curr_jd_value - dec_minus7_jd_value)
+		li_plus_value = (dec_curr_jd_value - dec_plus7_jd_value)
+		dec_bdminus_curr_jd_value = (dec_birthday_jd_value - dec_curr_jd_value)/86400
+		dec_bdplus_curr_jd_value = (dec_bdminus_curr_jd_value + (dec_curr_jd_value - dec_minus7_jd_value))
+		
+		if((dec_bdminus_curr_jd_value < 0) and (dec_bdminus_curr_jd_value >= li_plus_value)) then
+		  nrtnvalue = 2 //birthday past 7days
+		elseif((dec_bdminus_curr_jd_value > 0) and (dec_bdminus_curr_jd_value <= li_minus_value)) then
+		  nrtnvalue = 1 //birthday within 7 days
+		elseif(dec_bdminus_curr_jd_value = 0) then
+		  nrtnvalue = 3
+		end if
+	end if
+end if
+return nrtnvalue
+
+
+//	decimal dec_bd_jd_value
+//	decimal dec_from_jd_value
+//	decimal dec_to_jd_value
+//	decimal dec_curr_jd_value
+//	integer li_bd_month
+//	integer li_bd_day
+//	integer li_bd_year
+//	string ls_curr_datetime
+//	string ls_curr_date
+//	integer li_curr_month
+//	integer li_curr_day
+//	integer li_curr_year
+//	string ls_full_birthday
+//	int li_pos
+//	string ls_curr_year
+//	datetime ldt_curr_datetime
+//	date dt_curr_datetime
+//	date dt_bd_date
+//	decimal dec_minus7_jd_value
+//	decimal dec_plus7_jd_value
+//	datetime dt_full_birthday
+//	//ls_birthday = "01/02"		
+//
+//	//calculate past and future days from today
+//	ls_curr_datetime = ""
+//	ldt_curr_datetime = f_get_system_datetime(ls_curr_datetime)
+//	ls_curr_datetime = string(ldt_curr_datetime) //ie: 2/21/2024 12:11:00
+//	li_pos = pos(ls_curr_datetime, " ")
+//	if(li_pos > 0) then
+//		ls_curr_datetime = mid(ls_curr_datetime, 1, (li_pos - 1))
+//		ls_curr_year = mid(ls_curr_datetime, (len(ls_curr_datetime) - 3))
+//		li_bd_year = f_stoi(ls_curr_year)
+//		ls_full_birthday = ls_birthday + "/" + string(li_bd_year)
+//		dt_full_birthday = datetime(ls_full_birthday)
+//		ls_curr_datetime += " 00:00:00"		
+//		ldt_curr_datetime = datetime(ls_curr_datetime)
+//		dec_curr_jd_value = f_get_julian_date_value(ldt_curr_datetime) //today jd
+//		dec_minus7_jd_value = (dec_curr_jd_value - li_from_span)
+//		dec_plus7_jd_value = (dec_curr_jd_value + li_to_span)
+//		dec_bd_jd_value = f_get_julian_date_value(dt_full_birthday) //bd jd
+//		
+//	
+//	end if
+//	
+//
+//	
+//	
+//
+//	
+//	li_pos = pos(ls_birthday, "/")
+//	if(li_pos > 1) then
+//		li_bd_month = f_stoi(mid(ls_birthday, 1, (li_pos - 1)))
+//		li_bd_day = f_stoi(mid(ls_birthday, (li_pos + 1)))
+//		ls_curr_datetime = ""
+//		//dt_curr_datetime = f_get_system_datetime(ls_curr_datetime)
+//		ls_curr_datetime = string(dt_curr_datetime) //ie: 2/21/2024 12:11:00
+//		li_pos = pos(ls_curr_datetime, " ")
+//		if(li_pos > 0) then
+//			string lsa_parseoutdata[]
+//			integer li_num_parse_items
+//			ls_curr_date = trim(mid(ls_curr_datetime, 1, (li_pos - 1)))
+//			li_num_parse_items = f_parseoutstring_ext(ls_curr_date, "/", ref lsa_parseoutdata)
+//			if(li_num_parse_items = 3) then
+//				string ls_year
+//				ls_year = trim(lsa_parseoutdata[3])
+//				li_curr_year = f_stoi(ls_year)
+//				li_bd_year = li_curr_year
+//				li_curr_month = f_stoi(lsa_parseoutdata[1])
+//				li_curr_day = f_stoi(lsa_parseoutdata[2])
+////				if(li_bd_month = 12) then
+////					if((li_to_span + li_bd_day) > 31) then
+////						li_bd_year = (li_curr_year + 1)
+////					end if
+////				end if
+//				string ls_jan1stdate
+//				date jan1stdate 
+//				//date dt_bd_date 
+//				integer li_bddaysafter
+//				date dt_curr_date
+//				integer li_currdaysafter
+//				string ls_dec31stdate
+//				integer li_31stdays
+//				date dt_31stdate
+//				ls_jan1stdate = "1/1/" + string(li_bd_year)
+//				jan1stdate = date(ls_jan1stdate)
+//				
+//				ls_dec31stdate = "12/31/" + string(li_bd_year)
+//				dt_31stdate = date(ls_dec31stdate)
+//				
+//				dt_curr_date = date(ls_curr_date)
+//				li_currdaysafter = 0
+//				li_currdaysafter = DaysAfter(jan1stdate, dt_curr_date)
+//				
+//				date testcurrdt
+//				testcurrdt = date("12/28/2024")
+//				
+//				li_31stdays = DaysAfter(testcurrdt, dt_31stdate)
+//				if(li_31stdays < 7) then
+//					li_bd_year = (li_curr_year + 1)
+//				end if	
+//
+//				
+//				ls_full_birthday = string(li_bd_month) + "/" + string(li_bd_day) + "/" + string(li_bd_year)
+//				dt_bd_date = date(ls_full_birthday)
+//				
+//				li_bddaysafter = 0
+//				li_bddaysafter = DaysAfter(jan1stdate, dt_bd_date)
+//				
+//				
+//
+//				dt_full_birthday = datetime(ls_full_birthday)
+//				dec_bd_jd_value = f_get_julian_date_value(dt_full_birthday) //ie: 1077667200  2/22/2024 07:18:00 note: only use mm/dd/yyyy for julian birthday
+//				if(dec_bd_jd_value > 0) then
+//					ls_curr_date = ls_curr_date + " 00:00:00"
+//					//dt_curr_datetime = datetime(ls_curr_date)
+//					//dec_curr_jd_value = f_get_julian_date_value(dt_curr_datetime)
+//					long ll_num_days_to_bd
+//					ll_num_days_to_bd = ((dec_bd_jd_value - dec_curr_jd_value) / 86400)
+//					if((ll_num_days_to_bd >= (-1 * gi_bd_span_from)) and (ll_num_days_to_bd <= (gi_bd_span_to))) then
+//						decimal dec_bd_jd_span_from
+//						decimal dec_bd_jd_span_to
+//						dec_bd_jd_span_from = (dec_bd_jd_value - gi_bd_span_from)
+//						dec_bd_jd_span_to = (dec_bd_jd_value + gi_bd_span_to)
+//						if((dec_bd_jd_span_from  <= dec_bd_jd_value) and (dec_bd_jd_span_to >= dec_bd_jd_value)) then
+//							decimal bd_jd_withing
+//							decimal bd_jd_past
+//							decimal bd_jd_birthday
+//							//nrtnvalue = 0 do not display birthday
+//							//          = 1 birthday within 7 days
+//							//          = 2 birthday past 7 days
+//							//          = 3 on birthday
+//							if(dec_curr_jd_value = dec_bd_jd_value) then
+//								nrtnvalue = 3
+//							elseif(dec_bd_jd_span_from < dec_bd_jd_value) then
+//								nrtnvalue = 2								
+//								elseif(dec_bd_jd_value < dec_bd_jd_span_to) then
+//								nrtnvalue = 1
+//							end if
+//						end if
+//					end if
+//				end if
+//			end if
+//		end if
+//	end if
+
+end function
+

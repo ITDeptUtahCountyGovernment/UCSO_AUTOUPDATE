@@ -1,0 +1,42 @@
+﻿$PBExportHeader$f_get_settings_parameter.srf
+global type f_get_settings_parameter from function_object
+end type
+
+forward prototypes
+global function string f_get_settings_parameter (string ls_parm1, string ls_parm2, string ls_dataspec, ref transaction tr_sqlca)
+end prototypes
+
+global function string f_get_settings_parameter (string ls_parm1, string ls_parm2, string ls_dataspec, ref transaction tr_sqlca);//prototype: string ls_return_value = f_get_settings_parameter(ls_parm1, ls_parm2, ls_dataspec, ref sqlca)
+string ls_rtnvalue
+string ls_sql
+string lsa_rtn_values[]
+integer li_num_rtn_values
+integer li_pad_len
+boolean lb_compress
+li_pad_len = 120
+lb_compress = true
+ls_rtnvalue = ""
+ls_dataspec = trim(upper(ls_dataspec))
+ls_sql = "select "
+if(ls_dataspec = "NDATA") then
+	ls_sql += "ndata "
+elseif(ls_dataspec = "SDATASM") then
+	ls_sql += "sdatasm "
+elseif(ls_dataspec = "SDATALG") then
+	ls_sql += "sdatalg "
+elseif(ls_dataspec = "DDATA") then
+	ls_sql += "ddata "
+elseif(ls_dataspec = "LDDATE") then
+	ls_sql += "lddate "
+end if
+ls_sql += "from shs_settings where parm1 = '" + ls_parm1 + "' and parm2 = '" + ls_parm2 + "'"
+li_num_rtn_values = f_app_ds_populate_string_array_by_sql(ref lsa_rtn_values, ls_sql, li_pad_len, gs_delim, lb_compress, ref tr_sqlca)
+if(li_num_rtn_values >= 1) then
+	ls_rtnvalue = lsa_rtn_values[1]
+	if(len(ls_rtnvalue) > 0) then
+		ls_rtnvalue = f_compress_string(ls_rtnvalue, gs_delim) 
+	end if
+end if
+return ls_rtnvalue
+end function
+

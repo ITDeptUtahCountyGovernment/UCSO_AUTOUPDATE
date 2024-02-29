@@ -1,0 +1,35 @@
+﻿$PBExportHeader$f_compress_string_spacing.srf
+global type f_compress_string_spacing from function_object
+end type
+
+forward prototypes
+global function string f_compress_string_spacing (string ls_instr, string ls_comchar, integer li_spacingnum)
+end prototypes
+
+global function string f_compress_string_spacing (string ls_instr, string ls_comchar, integer li_spacingnum);string ls_newstr
+integer li_slen
+ls_newstr = ""
+if(li_spacingnum <= 0) then
+	li_spacingnum = 1
+end if
+li_slen = f_len_ext(ls_instr)
+if(li_slen > 0) then
+	integer li_numspaces = 0
+	integer li_loop
+	string ls_check
+	for li_loop = 1 to li_slen
+		ls_check = mid(ls_instr, li_loop, 1)
+		if(ls_check <> ls_comchar) then
+			ls_newstr += ls_check
+			li_numspaces = 0
+		else
+			li_numspaces = li_numspaces + 1
+			if(li_numspaces <= li_spacingnum) then
+				ls_newstr += ls_check
+			end if
+		end if
+	next //end li_loop
+end if
+return ls_newstr
+end function
+
