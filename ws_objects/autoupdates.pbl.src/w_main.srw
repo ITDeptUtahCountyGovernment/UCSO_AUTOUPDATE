@@ -2,6 +2,8 @@
 forward
 global type w_main from window
 end type
+type st_14 from statictext within w_main
+end type
 type sle_num_errors from singlelineedit within w_main
 end type
 type st_13 from statictext within w_main
@@ -68,6 +70,7 @@ boolean resizable = true
 long backcolor = 67108864
 string icon = "AppIcon!"
 boolean center = true
+st_14 st_14
 sle_num_errors sle_num_errors
 st_13 st_13
 st_12 st_12
@@ -108,6 +111,7 @@ integer gi_rowid
 end variables
 
 on w_main.create
+this.st_14=create st_14
 this.sle_num_errors=create sle_num_errors
 this.st_13=create st_13
 this.st_12=create st_12
@@ -134,7 +138,8 @@ this.st_2=create st_2
 this.sle_interval=create sle_interval
 this.st_1=create st_1
 this.pb_close=create pb_close
-this.Control[]={this.sle_num_errors,&
+this.Control[]={this.st_14,&
+this.sle_num_errors,&
 this.st_13,&
 this.st_12,&
 this.sle_num_updated,&
@@ -163,6 +168,7 @@ this.pb_close}
 end on
 
 on w_main.destroy
+destroy(this.st_14)
 destroy(this.sle_num_errors)
 destroy(this.st_13)
 destroy(this.st_12)
@@ -592,6 +598,23 @@ end event
 event close;Timer(0)
 Close(w_main)
 end event
+
+type st_14 from statictext within w_main
+integer x = 3374
+integer y = 20
+integer width = 485
+integer height = 64
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+long textcolor = 33554432
+long backcolor = 67108864
+string text = "02/29/2024 11:30"
+boolean focusrectangle = false
+end type
 
 type sle_num_errors from singlelineedit within w_main
 integer x = 3383
