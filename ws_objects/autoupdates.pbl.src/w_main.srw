@@ -59,8 +59,8 @@ end type
 end forward
 
 global type w_main from window
-integer width = 3922
-integer height = 3560
+integer width = 2587
+integer height = 3080
 boolean titlebar = true
 string title = "Auto Update Database Support"
 boolean controlmenu = true
@@ -600,8 +600,8 @@ Close(w_main)
 end event
 
 type st_14 from statictext within w_main
-integer x = 3374
-integer y = 20
+integer x = 2048
+integer y = 24
 integer width = 485
 integer height = 64
 integer textsize = -10
@@ -617,8 +617,8 @@ boolean focusrectangle = false
 end type
 
 type sle_num_errors from singlelineedit within w_main
-integer x = 3383
-integer y = 580
+integer x = 2130
+integer y = 600
 integer width = 288
 integer height = 100
 integer taborder = 30
@@ -634,8 +634,8 @@ borderstyle borderstyle = stylelowered!
 end type
 
 type st_13 from statictext within w_main
-integer x = 3035
-integer y = 596
+integer x = 1783
+integer y = 616
 integer width = 338
 integer height = 64
 integer textsize = -10
@@ -652,8 +652,8 @@ boolean focusrectangle = false
 end type
 
 type st_12 from statictext within w_main
-integer x = 2373
-integer y = 604
+integer x = 1088
+integer y = 616
 integer width = 338
 integer height = 64
 integer textsize = -10
@@ -670,8 +670,8 @@ boolean focusrectangle = false
 end type
 
 type sle_num_updated from singlelineedit within w_main
-integer x = 2720
-integer y = 588
+integer x = 1435
+integer y = 600
 integer width = 288
 integer height = 100
 integer taborder = 20
@@ -686,8 +686,8 @@ borderstyle borderstyle = stylelowered!
 end type
 
 type st_11 from statictext within w_main
-integer x = 1678
-integer y = 604
+integer x = 1755
+integer y = 516
 integer width = 370
 integer height = 64
 integer textsize = -10
@@ -704,8 +704,8 @@ boolean focusrectangle = false
 end type
 
 type sle_num_processed from singlelineedit within w_main
-integer x = 2057
-integer y = 588
+integer x = 2135
+integer y = 500
 integer width = 288
 integer height = 100
 integer taborder = 20
@@ -720,8 +720,8 @@ borderstyle borderstyle = stylelowered!
 end type
 
 type st_10 from statictext within w_main
-integer x = 978
-integer y = 608
+integer x = 1065
+integer y = 512
 integer width = 361
 integer height = 64
 integer textsize = -10
@@ -738,8 +738,8 @@ boolean focusrectangle = false
 end type
 
 type sle_to_process from singlelineedit within w_main
-integer x = 1349
-integer y = 592
+integer x = 1435
+integer y = 496
 integer width = 288
 integer height = 100
 integer taborder = 20
@@ -840,8 +840,8 @@ end type
 type lb_status from listbox within w_main
 integer x = 14
 integer y = 700
-integer width = 3854
-integer height = 2704
+integer width = 2514
+integer height = 2260
 integer taborder = 50
 integer textsize = -10
 integer weight = 700
