@@ -360,7 +360,7 @@ if(gb_stoprunning = false) then
 		ls_sql += "where a.active = 1 "
 		ls_sql += "and ((a.empno > 0) and (a.empno < 19999)) "
 		ls_sql += "and a.empno = b.assgnd_empno "
-		ls_sql += "and ((a.dispbdupdatejd = 0) or (a.dispbdupdatejd is null) or (a.dispbdupdatejd <= 3918240000)) "
+		ls_sql += "and ((a.dispbdupdatejd = 0) or (a.dispbdupdatejd is null) or (a.dispbdupdatejd <= " + string(gdec_currdate_jd) + ")) "
 		ls_sql += "and b.grpid in (117,118,135,136,137,138,139,140,59) "
 		ls_sql += "order by b.grpid"
 		//		
