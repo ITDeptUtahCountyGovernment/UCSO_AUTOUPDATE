@@ -30,6 +30,9 @@ integer gi_bd_no_display
 integer gi_bd_before_days
 integer gi_bd_after_days
 integer gi_bd_today
+decimal gdec_bd_span_from
+decimal gdec_bd_span_to
+decimal gdec_currdate_jd
 
 //nrtnvalue = 0 do not display birthday
 //          = 1 birthday within 7 days
@@ -139,6 +142,27 @@ ls_temp_parameter = f_get_settings_parameter("SYSTEM","BD_SPAN_FROM","ndata", re
 gi_bd_span_from = f_stoi(ls_temp_parameter)
 ls_temp_parameter = f_get_settings_parameter("SYSTEM","BD_SPAN_TO","ndata", ref sqlca)
 gi_bd_span_to = f_stoi(ls_temp_parameter)
+
+datetime ldt_sysdatetime
+string ls_sysdatetime
+ls_sysdatetime = ""
+ldt_sysdatetime = f_get_system_datetime(ls_sysdatetime)
+ls_sysdatetime = string(ldt_sysdatetime)
+date ld_temp_curr_date
+ld_temp_curr_date  = date(string(ldt_sysdatetime))
+integer li_curr_day
+integer li_curr_month
+integer li_curr_year
+li_curr_day = day(ld_temp_curr_date)
+li_curr_month = month(ld_temp_curr_date)
+li_curr_year = year(ld_temp_curr_date)
+string ls_temp_curr_date
+ls_temp_curr_date = f_lpad(string(li_curr_month), 2, "0") + "/" + f_lpad(string(li_curr_day), 2, "0") + "/" + string(li_curr_year) + " 00:00:00"
+datetime ldt_temp_curr_datetime
+ldt_temp_curr_datetime = datetime(ls_temp_curr_date)
+gdec_currdate_jd = f_get_julian_date_value1900(ldt_temp_curr_datetime, true)
+gdec_bd_span_from = (gdec_currdate_jd - (gi_bd_span_from * 86400))
+gdec_bd_span_to = (gdec_currdate_jd + (gi_bd_span_from * 86400))
 
 // 0 do not display birthday
 // 1 birthday within 7 days

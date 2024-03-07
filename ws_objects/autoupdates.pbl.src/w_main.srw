@@ -260,7 +260,19 @@ if(gb_stoprunning = false) then
 	boolean bUpdatedobjd
 	boolean bUpdatedobupdatejd
 	boolean bUpdatedobshort
-	dec_currdate_jd = f_get_julian_date_value1900(dt_currdate, false)
+	integer li_curr_day
+	integer li_curr_month
+	integer li_curr_year
+	date ld_temp_curr_date
+	ld_temp_curr_date = date(string(dt_sysdatetime))
+	li_curr_day = day(ld_temp_curr_date)
+	li_curr_month = month(ld_temp_curr_date)
+	li_curr_year = year(ld_temp_curr_date)
+	string ls_temp_curr_date
+	ls_temp_curr_date = f_lpad(string(li_curr_month), 2, "0") + "/" + f_lpad(string(li_curr_day), 2, "0") + "/" + string(li_curr_year) + " 00:00:00"
+	datetime ldt_temp_curr_datetime
+	ldt_temp_curr_datetime = datetime(ls_temp_curr_date)
+	dec_currdate_jd = f_get_julian_date_value1900(ldt_temp_curr_datetime, true)
 	bOkToContinue = false
 	int spos	
 	//====================================================================
@@ -325,11 +337,35 @@ if(gb_stoprunning = false) then
 		bEnableTimer = true
 	end if
 	if(bDoUpdates = true) then
+		//update the system datetime JD and from and to JD's
+		datetime ldt_sysdatetime
+		ls_sysdatetime = ""
+		ldt_sysdatetime = f_get_system_datetime(ls_sysdatetime)
+		ls_sysdatetime = string(ldt_sysdatetime)
+		ld_temp_curr_date  = date(string(ldt_sysdatetime))
+		li_curr_day = day(ld_temp_curr_date)
+		li_curr_month = month(ld_temp_curr_date)
+		li_curr_year = year(ld_temp_curr_date)
+		ls_temp_curr_date = f_lpad(string(li_curr_month), 2, "0") + "/" + f_lpad(string(li_curr_day), 2, "0") + "/" + string(li_curr_year) + " 00:00:00"
+		ldt_temp_curr_datetime = datetime(ls_temp_curr_date)
+		gdec_currdate_jd = f_get_julian_date_value1900(ldt_temp_curr_datetime, true)
+		gdec_bd_span_from = abs((gdec_currdate_jd - (gi_bd_span_from * 86400)))
+		gdec_bd_span_to = abs((gdec_currdate_jd + (gi_bd_span_from * 86400)))
 		lb_status.additem(ls_sysdatetime + " Doing Updates")
 		bWaitForIntervalTimeout = true
 		//do update
 		string ls_sql
-		ls_sql = "select empno, dob, dobjd, dispbd, dispbdupdatejd, empname, active, dobshort from sns_employees where active = 1 and ((empno > 0) and (empno < 19999)) and ((dobjd is null) or (dobjd = 0)) and dispbdupdatejd < " + string(dec_currdate_jd)
+		ls_sql = "select a.empno, a.dob, a.dobjd, a.dispbd, a.dispbdupdatejd, a.empname, a.active, a.dobshort, b.grpid "
+		ls_sql += "from sns_employees a, sns_staffing_grps_positions2 b "
+		ls_sql += "where a.active = 1 "
+		ls_sql += "and ((a.empno > 0) and (a.empno < 19999)) "
+		ls_sql += "and a.empno = b.assgnd_empno "
+		ls_sql += "and ((a.dispbdupdatejd = 0) or (a.dispbdupdatejd is null) or (a.dispbdupdatejd <= 3918240000)) "
+		ls_sql += "and b.grpid in (117,118,135,136,137,138,139,140,59) "
+		ls_sql += "order by b.grpid"
+		//		
+		//old sql ls_sql = "select empno, dob, dobjd, dispbd, dispbdupdatejd, empname, active, dobshort from sns_employees where active = 1 and ((empno > 0) and (empno < 19999)) and ((dobjd is null) or (dobjd = 0)) and dispbdupdatejd <= " + string(dec_currdate_jd)
+		//
 		string lsa_dobs[]
 		integer li_num_dobs
 		li_num_dobs = f_app_ds_populate_string_array_by_sql(ref lsa_dobs, ls_sql, gi_pad_len, gs_delim, gb_compress, ref sqlca)
@@ -357,27 +393,69 @@ if(gb_stoprunning = false) then
 			decimal dec_jddob
 			decimal dec_dispbdjd
 			decimal dec_dispbdupdatejd
+			decimal dec_dobjd
+			decimal dec_bd_span_from
+			decimal dec_bd_span_to
 			date dt_date
 			datetime dt_datetime
+			datetime dt_shortbd
 			integer li_chk_year
 			integer li_dob_len
 			integer nRtnDispBd
 			string ls_update_sql	
 			string ls_short_birthday
 			string ls_dobshort
+			long ll_grpid
+			string ls_curryr_birthday
+			decimal dec_num_past_days
+			decimal dec_num_within_days
+			decimal dec_temp_bd_span_from
+			decimal dec_temp_bd_span_to
 			//---------------------
 			li_num_updated = 0
 			li_num_errors = 0
+			dec_temp_bd_span_from = gdec_bd_span_from
+			dec_temp_bd_span_to = gdec_bd_span_to		
 			//---------------------
 			sle_to_process.text = string(li_num_dobs)
 			for li_loop = 1 to li_num_dobs
+				//--------------------------------
+				ls_format = "DD-MMM-YYYY" //INPUT FORMAT 
+				ls_month = ""
+				ls_day = ""
+				ls_year = ""
+				ls_hour = ""
+				ls_minute = ""
+				ls_second = ""
+				ls_date = ""
+				ls_time = ""
+				ls_new_dob = ""
+				ls_curryr_birthday = ""
+				dec_dobjd = 0
+				dec_jddob = 0
+				dec_dispbdjd = 0
+				dec_dispbdupdatejd = 0
+				bUpdatedob = false
+				bUpdatedobjd = false
+				bUpdatedobupdatejd = false
+				bUpdatedobshort = false
+				nRtnDispBd = 0
+				ls_update_sql = ""
+				ls_short_birthday = ""
+				ls_empname = ""
+				ls_dobshort = ""
+				ls_dob = ""
+				dec_jddob = 0
+				dec_dispbdjd = 0
+				dec_dispbdupdatejd = 0
+				dec_num_past_days = 0
+				dec_num_within_days = 0
+				//---------------	-----------------				
 				ls_loopdata = lsa_dobs[li_loop]
 				li_num_parse_items = f_parseoutstring_ext(ls_loopdata, gs_delim, ref lsa_parseoutdata)
 				if(li_num_parse_items >= 8) then
 					ll_empno = f_stol(lsa_parseoutdata[1])
 					if(ll_empno > 0) then
-						ls_empname = lsa_parseoutdata[4]
-						ls_dobshort = trim(lsa_parseoutdata[8])
 //						if(ll_empno = 16703) then 
 //							//2/21
 //							li_stop = 0
@@ -393,28 +471,12 @@ if(gb_stoprunning = false) then
 //						end if
 						
 						
-						//--------------------------------
-						ls_format = "DD-MMM-YYYY" //INPUT FORMAT 
-						ls_month = ""
-						ls_day = ""
-						ls_year = ""
-						ls_hour = ""
-						ls_minute = ""
-						ls_second = ""
-						ls_date = ""
-						ls_time = ""
-						ls_new_dob = ""
-						dec_jddob = 0
-						dec_dispbdjd = 0
-						dec_dispbdupdatejd = 0
-						bUpdatedob = false
-						bUpdatedobjd = false
-						bUpdatedobupdatejd = false
-						bUpdatedobshort = false
-						nRtnDispBd = 0
-						ls_update_sql = ""
-						ls_short_birthday = ""
-						//---------------	-----------------
+						if(pos("15449,17872,15567", string(ll_empno)) > 0) then
+							li_stop = 0
+						end if
+						
+   					ls_empname = lsa_parseoutdata[6]
+						ls_dobshort = trim(lsa_parseoutdata[8])
 						ls_dob = trim(lsa_parseoutdata[2])
 						if((IsNull(ls_dob) = true) or (ls_dob = "")) then
 							ls_dob = ""
@@ -427,6 +489,7 @@ if(gb_stoprunning = false) then
 								continue //skip to next record to update/check
 							end if
 							bUpdatedob = true
+							bUpdatedobjd = true
 						end if
 						ls_empname = trim(lsa_parseoutdata[6])
 						dec_jddob = f_stodec(lsa_parseoutdata[3])						
@@ -435,108 +498,117 @@ if(gb_stoprunning = false) then
 						if(f_len_ext(ls_dobshort) = 0) then
 							bUpdatedobshort = true
 						end if
-						if((dec_jddob = 0) or (dec_dispbdjd = 0) or (dec_dispbdupdatejd = 0)) then
-							if(dec_dispbdjd = 0) then
-								bUpdatedobjd = true
-							end if
-							if(dec_dispbdupdatejd = 0) then
-								bUpdatedobupdatejd = true
-							end if		
-							if(bUpdatedob = true) or (bUpdatedobjd = true) or (bUpdatedobupdatejd = true) then
-								if(f_len_ext(ls_dob) < 10) then
-									//convert ls_dob from 06-JAN-86 to MM/DD/YYYY if not already
-									li_rtn_status = f_extract_sysdate_time_components_ext_mod(ls_dob, ls_format, li_sysdate_year, ref ls_month, ref ls_day, ref ls_year, ref ls_hour, ref ls_minute, ref ls_second, ref ls_date, ref ls_time)
-								else
-									ls_format = "MM/DD/YYYY"
-									li_rtn_status = f_extract_sysdate_time_components_ext_mod(ls_dob, ls_format, li_sysdate_year, ref ls_month, ref ls_day, ref ls_year, ref ls_hour, ref ls_minute, ref ls_second, ref ls_date, ref ls_time)									
-									ls_new_dob = ls_dob									
-								end if
-								s_dt_values lstr_dt_values
-								ls_month = f_convert_month(ls_month, true)
-								li_chk_year = f_stoi(ls_year)
-								lstr_dt_values.li_month = f_stoi(ls_month)
-								lstr_dt_values.li_day = f_stoi(ls_day)
-								lstr_dt_values.li_year = f_stoi(ls_year)
-								lstr_dt_values.li_hour = f_stoi(ls_hour)
-								lstr_dt_values.li_min = f_stoi(ls_minute)
-								lstr_dt_values.li_sec = f_stoi(ls_second)
-								if(f_len_ext(ls_new_dob) = 0) then
-									ls_new_dob = f_format_datetime_string_ext(true, lstr_dt_values,true,true,'/',false,false,false,false,false)
-								end if
-								li_dob_len = f_len_ext(ls_new_dob)
-								if(li_dob_len = 10) then
-   								ls_short_birthday = mid(ls_new_dob, 1, 5)
-									dt_date = date(ls_new_dob)
-									if(f_is_valid_date(dt_date) = true) then
-										dt_datetime = datetime(dt_date)
-										dec_jddob = f_get_julian_date_value1900(dt_datetime, false)			
-										//build update sql
-										ls_update_sql = "update sns_employees "
-										if(bUpdatedob = true) then
-											ls_update_sql += "set dob = '" + ls_new_dob + "' "
-										end if	
-										if(bUpdatedobjd = true) then
-											if(pos(ls_update_sql, "set") = 0) then
-												ls_update_sql += "set dobjd =" + string(dec_jddob) + " "
-											else
-												ls_update_sql += ", dobjd =" + string(dec_jddob) + " "
-											end if
-											nRtnDispBd = f_displayEmployeeBirthday(gi_bd_span_from, gi_bd_span_to, ls_short_birthday) 
-											if((nRtnDispBd <> 0) and (bUpdatedobjd = true)) then
-												dec_dispbdjd = dec_currdate_jd
-												if(pos(ls_update_sql, "set") = 0) then
-													ls_update_sql += "set dispbd = " + string(nRtnDispBd) + " "
-												else
-													ls_update_sql += ", dispbd = " + string(nRtnDispBd) + " "
-												end if
-											end if
-										end if
-										if(bUpdatedobupdatejd = true) then
-											dec_dispbdupdatejd = dec_currdate_jd
-											if(pos(ls_update_sql, "set") = 0) then
-												ls_update_sql += "set dispbdupdatejd =" + string(dec_dispbdupdatejd) + " "
-											else
-												ls_update_sql += ", dispbdupdatejd =" + string(dec_dispbdupdatejd) + " "
-											end if
-										end if
-										if(bUpdatedobshort = true) then
-											ls_dobshort = ls_short_birthday
-											if(pos(ls_update_sql, "set") = 0) then
-												ls_update_sql += "set dobshort = '" + ls_dobshort + "' "
-											else
-												ls_update_sql += ", dobshort = '" + ls_dobshort + "' "
-											end if
-										end if
-										if(pos(ls_update_sql, "set") = 0) then
-											lb_status.additem("invalid update sql. empno=" + string(ll_empno) + " empname=" + ls_empname)
-											continue //skip to next record to update/check
-										else
-											ls_update_sql += "where empno = " + string(ll_empno)
-											//
-											execute immediate :ls_update_sql using sqlca;
-											//
-											//lb_status.additem(ls_update_sql)
-											if(sqlca.sqlcode <> -1) then
-												//
-												commit using sqlca;
-   											//
-												li_num_updated++
-											else
-												ls_sql_err_text = sqlca.sqlerrtext
-												//
-												rollback using sqlca;
-												//
-												lb_status.additem("Error: " + ls_sql_err_text + ". empno=" + string(ll_empno) + " empname=" + ls_empname)
-												li_num_errors++
-											end if
-										end if
-   								else
-										lb_status.additem(ls_empname + " empno: " + string(ll_empno) + " newdob is not valid=" + ls_new_dob)
+						integer li_curr_dispbd_rtn_value
+						li_curr_dispbd_rtn_value = f_displayEmployeeBirthday(gi_bd_span_from, gi_bd_span_to, ls_dobshort) 
+						
+						if((dec_dispbdjd = 0) or (dec_dispbdjd <> li_curr_dispbd_rtn_value)) then
+							bUpdatedobjd = true
+						end if
+						
+						if((dec_dispbdupdatejd = 0) or (dec_dispbdupdatejd <> gdec_currdate_jd)) then
+							bUpdatedobupdatejd = true
+						end if		
+						if(f_len_ext(ls_dob) < 10) then
+							//convert ls_dob from 06-JAN-86 to MM/DD/YYYY if not already
+							li_rtn_status = f_extract_sysdate_time_components_ext_mod(ls_dob, ls_format, li_sysdate_year, ref ls_month, ref ls_day, ref ls_year, ref ls_hour, ref ls_minute, ref ls_second, ref ls_date, ref ls_time)
+						else
+							ls_format = "MM/DD/YYYY"
+							li_rtn_status = f_extract_sysdate_time_components_ext_mod(ls_dob, ls_format, li_sysdate_year, ref ls_month, ref ls_day, ref ls_year, ref ls_hour, ref ls_minute, ref ls_second, ref ls_date, ref ls_time)									
+							ls_new_dob = ls_dob									
+						end if
+						s_dt_values lstr_dt_values
+						ls_month = f_convert_month(ls_month, true)
+						li_chk_year = f_stoi(ls_year)
+						lstr_dt_values.li_month = f_stoi(ls_month)
+						lstr_dt_values.li_day = f_stoi(ls_day)
+						lstr_dt_values.li_year = f_stoi(ls_year)
+						lstr_dt_values.li_hour = f_stoi(ls_hour)
+						lstr_dt_values.li_min = f_stoi(ls_minute)
+						lstr_dt_values.li_sec = f_stoi(ls_second)
+						if(f_len_ext(ls_new_dob) = 0) then
+							ls_new_dob = f_format_datetime_string_ext(true, lstr_dt_values,true,true,'/',false,false,false,false,false)
+						end if
+						
+						li_dob_len = f_len_ext(ls_new_dob)
+						if(li_dob_len = 10) then
+							ls_short_birthday = mid(ls_new_dob, 1, 5)
+							ls_curryr_birthday = ls_short_birthday + "/" + string(li_sysdate_year)
+							dt_shortbd = datetime(ls_curryr_birthday)
+							dec_dobjd = f_get_julian_date_value1900(dt_shortbd, false)	
+							
+							
+							dec_num_past_days  = (abs(gdec_currdate_jd - dec_dobjd)/86400)
+							dec_num_within_days  = (abs(gdec_currdate_jd + dec_dobjd)/86400)
+							
+							dt_date = date(ls_new_dob)
+							if(f_is_valid_date(dt_date) = true) then
+								dt_datetime = datetime(dt_date)
+								dec_jddob = f_get_julian_date_value1900(dt_datetime, false)			
+								//build update sql
+								ls_update_sql = "update sns_employees "
+								if(bUpdatedob = true) then
+									ls_update_sql += "set dob = '" + ls_new_dob + "' "
+								end if	
+								if(bUpdatedobjd = true) then
+									if(pos(ls_update_sql, "set") = 0) then
+										ls_update_sql += "set dobjd =" + string(dec_jddob) + " "
+									else
+										ls_update_sql += ", dobjd =" + string(dec_jddob) + " "
 									end if
-								else
-									lb_status.additem(ls_empname + " empno: " + string(ll_empno) + " newdob length is not valid=" + ls_new_dob)
 								end if
+								nRtnDispBd = f_displayEmployeeBirthday(gi_bd_span_from, gi_bd_span_to, ls_short_birthday) 
+								if((nRtnDispBd <> 0) or (bUpdatedobjd = true) or (dec_dispbdjd <> nRtnDispBd)) then
+									dec_dispbdjd = gdec_currdate_jd
+									if(pos(ls_update_sql, "set") = 0) then
+										ls_update_sql += "set dispbd = " + string(nRtnDispBd) + " "
+									else
+										ls_update_sql += ", dispbd = " + string(nRtnDispBd) + " "
+									end if
+								end if
+								if(bUpdatedobupdatejd = true) then
+									dec_dispbdupdatejd = gdec_currdate_jd
+									if(pos(ls_update_sql, "set") = 0) then
+										ls_update_sql += "set dispbdupdatejd =" + string(dec_dispbdupdatejd) + " "
+									else
+										ls_update_sql += ", dispbdupdatejd =" + string(dec_dispbdupdatejd) + " "
+									end if
+								end if
+								if(bUpdatedobshort = true) then
+									ls_dobshort = ls_short_birthday
+									if(pos(ls_update_sql, "set") = 0) then
+										ls_update_sql += "set dobshort = '" + ls_dobshort + "' "
+									else
+										ls_update_sql += ", dobshort = '" + ls_dobshort + "' "
+									end if
+								end if
+								if(pos(ls_update_sql, "set") = 0) then
+									lb_status.additem("invalid update sql. empno=" + string(ll_empno) + " empname=" + ls_empname)
+									continue //skip to next record to update/check
+								else
+									ls_update_sql += "where empno = " + string(ll_empno)
+									//
+									execute immediate :ls_update_sql using sqlca;
+									//
+									lb_status.additem(ls_update_sql)
+									if(sqlca.sqlcode <> -1) then
+										//
+										commit using sqlca;
+										//
+										li_num_updated++
+									else
+										ls_sql_err_text = sqlca.sqlerrtext
+										//
+										rollback using sqlca;
+										//
+										lb_status.additem("Error: " + ls_sql_err_text + ". empno=" + string(ll_empno) + " empname=" + ls_empname)
+										li_num_errors++
+									end if
+								end if
+							else
+								lb_status.additem(ls_empname + " empno: " + string(ll_empno) + " newdob is not valid=" + ls_new_dob)
 							end if
+						else
+							lb_status.additem(ls_empname + " empno: " + string(ll_empno) + " newdob length is not valid=" + ls_new_dob)
 						end if
 					end if //ll_empno > 0 chk
 				end if
@@ -612,7 +684,7 @@ fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 long textcolor = 33554432
 long backcolor = 67108864
-string text = "02/29/2024 11:30"
+string text = "03/07/2024 11:48"
 boolean focusrectangle = false
 end type
 
