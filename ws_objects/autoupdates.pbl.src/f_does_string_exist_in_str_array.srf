@@ -1,0 +1,39 @@
+﻿$PBExportHeader$f_does_string_exist_in_str_array.srf
+global type f_does_string_exist_in_str_array from function_object
+end type
+
+forward prototypes
+global function integer f_does_string_exist_in_str_array (ref string lsa_array[], string ls_search_for, boolean lb_exact_match)
+end prototypes
+
+global function integer f_does_string_exist_in_str_array (ref string lsa_array[], string ls_search_for, boolean lb_exact_match);//prototype: li_return = f_does_string_exist_in_str_array(lsa_array, ls_search_for, lb_exact_match)
+integer li_return
+integer li_num_items
+li_return = 0
+li_num_items = UpperBound(lsa_array)
+if(li_num_items > 0) then
+	integer li_loop
+	string ls_item
+	for li_loop = 1 to li_num_items
+		ls_item = lsa_array[li_loop]
+		if(lb_exact_match = true) then
+			if(ls_item = ls_search_for) then
+				li_return = li_loop
+				exit
+			end if
+		else
+			if(match(ls_item, ls_search_for) = true) then
+				li_return = li_loop
+				exit
+			end if
+		end if
+	next //li_loop
+end if
+return li_return
+
+
+
+
+
+end function
+

@@ -361,7 +361,7 @@ if(gb_stoprunning = false) then
 		ls_sql += "and ((a.empno > 0) and (a.empno < 19999)) "
 		ls_sql += "and a.empno = b.assgnd_empno "
 		ls_sql += "and ((a.dispbdupdatejd = 0) or (a.dispbdupdatejd is null) or (a.dispbdupdatejd <= " + string(gdec_currdate_jd) + ")) "
-		ls_sql += "and b.grpid in (117,118,135,136,137,138,139,140,59) "
+		//ls_sql += "and b.grpid in (117,118,135,136,137,138,139,140,59) "
 		ls_sql += "order by b.grpid"
 		//		
 		//old sql ls_sql = "select empno, dob, dobjd, dispbd, dispbdupdatejd, empname, active, dobshort from sns_employees where active = 1 and ((empno > 0) and (empno < 19999)) and ((dobjd is null) or (dobjd = 0)) and dispbdupdatejd <= " + string(dec_currdate_jd)
@@ -411,6 +411,22 @@ if(gb_stoprunning = false) then
 			decimal dec_num_within_days
 			decimal dec_temp_bd_span_from
 			decimal dec_temp_bd_span_to
+			integer li_temp_num
+			string lsa_found_data[]
+			long ll_temp_empno	
+			boolean bupdate_board_specs
+			//----------------------
+			integer li_uloop
+			integer li_upos
+			long ll_uid //id of sns_board_specs record
+			integer li_ucol //column of found empno
+			string ls_uloopdata
+			string ls_column_number
+			string ls_dispbd_prefix
+			string ls_dispbd
+			string ls_dobsh_prefix
+			string ls_dobsh
+			string ls_sbs_update_sql			
 			//---------------------
 			li_num_updated = 0
 			li_num_errors = 0
@@ -450,25 +466,27 @@ if(gb_stoprunning = false) then
 				dec_dispbdupdatejd = 0
 				dec_num_past_days = 0
 				dec_num_within_days = 0
+				bupdate_board_specs = false
 				//---------------	-----------------				
 				ls_loopdata = lsa_dobs[li_loop]
 				li_num_parse_items = f_parseoutstring_ext(ls_loopdata, gs_delim, ref lsa_parseoutdata)
 				if(li_num_parse_items >= 8) then
 					ll_empno = f_stol(lsa_parseoutdata[1])
 					if(ll_empno > 0) then
-//						if(ll_empno = 16703) then 
-//							//2/21
-//							li_stop = 0
-//						elseif(ll_empno = 17961) then
-//							//2/22
-//							li_stop = 0
-//						elseif(ll_empno = 17134) then
-//							//2/28
-//							li_stop = 0
-//						elseif(ll_empno = 16703) then
-//							//3/3
-//							li_stop = 0
-//						end if
+						if(ll_empno = 15378) then 
+							//2/21
+							
+							li_stop = 0
+						elseif(ll_empno = 18091) then
+							//2/22
+							li_stop = 0
+						elseif(ll_empno = 17024) then
+							//2/28
+							li_stop = 0
+						elseif(ll_empno = 16464) then
+							//3/3
+							li_stop = 0
+						end if
 						
 						
 						if(pos("15449,17872,15567", string(ll_empno)) > 0) then
@@ -535,13 +553,13 @@ if(gb_stoprunning = false) then
 							ls_curryr_birthday = ls_short_birthday + "/" + string(li_sysdate_year)
 							dt_shortbd = datetime(ls_curryr_birthday)
 							dec_dobjd = f_get_julian_date_value1900(dt_shortbd, false)	
-							
-							
 							dec_num_past_days  = (abs(gdec_currdate_jd - dec_dobjd)/86400)
 							dec_num_within_days  = (abs(gdec_currdate_jd + dec_dobjd)/86400)
-							
 							dt_date = date(ls_new_dob)
 							if(f_is_valid_date(dt_date) = true) then
+								//
+								//update sns_employees
+								//
 								dt_datetime = datetime(dt_date)
 								dec_jddob = f_get_julian_date_value1900(dt_datetime, false)			
 								//build update sql
@@ -595,6 +613,7 @@ if(gb_stoprunning = false) then
 										commit using sqlca;
 										//
 										li_num_updated++
+										bupdate_board_specs = true
 									else
 										ls_sql_err_text = sqlca.sqlerrtext
 										//
@@ -602,6 +621,72 @@ if(gb_stoprunning = false) then
 										//
 										lb_status.additem("Error: " + ls_sql_err_text + ". empno=" + string(ll_empno) + " empname=" + ls_empname)
 										li_num_errors++
+									end if
+								end if
+								if(bupdate_board_specs = true) then
+									//
+									//update sns_board_specs
+									//	
+									li_temp_num = 0
+									ll_temp_empno = 0
+									ll_temp_empno = ll_empno 
+									li_temp_num = f_retrieve_bd_specs_empno_columns(ll_temp_empno, ref lsa_found_data, ref sqlca)
+									if(li_temp_num > 0) then
+										//update dispbd_xxx = nRtnDispBd, dobsh_xxx = ls_short_birthday
+										//example of lsa_found_data
+										//15378 = 2|1, 109|1
+										//18091 = 2|2, 54|1, 110|1
+										//17024 = 14|1, 111|1
+										//16464 = 112|1
+										ls_sbs_update_sql = ""
+										ls_dispbd_prefix = "dispbd_"
+										ls_dobsh_prefix = "dobsh_"
+										long ll_exists_id
+										string ls_update_sbs_sql_check
+										string lsa_exists[]
+										integer li_num_exists_items
+										boolean bOkToUpdateBoardSpecs
+										for li_uloop = 1 to li_temp_num
+											bOkToUpdateBoardSpecs = true
+											ls_uloopdata = lsa_found_data[li_uloop]
+											li_upos = pos(ls_uloopdata, "|")
+											if(li_upos > 0) then
+												ll_uid = f_stol(mid(ls_uloopdata, 1, (li_upos - 1)))
+												li_ucol = f_stoi(mid(ls_uloopdata, (li_upos + 1)))
+												if((ll_uid > 0) and (li_ucol > 0)) then
+													ls_column_number = f_lpad(string(li_ucol), 3, "0")
+													ls_dispbd = ls_dispbd_prefix + ls_column_number
+													ls_dobsh = ls_dobsh_prefix + ls_column_number
+													ls_sbs_update_sql = "update sns_board_specs set " + ls_dispbd + "=" + string(nRtnDispBd) + ", " + ls_dobsh + "= '" + ls_short_birthday + "' "
+													ls_sbs_update_sql += "where id = " + string(ll_uid)
+													//
+													ls_update_sbs_sql_check = "select id," + ls_dispbd + "," + ls_dobsh + "	from sns_board_specs where id = " + string(ll_uid)
+													//
+													li_num_exists_items = f_app_ds_populate_string_array_by_sql(ref lsa_exists, ls_update_sbs_sql_check, gi_pad_len, gs_delim, gb_compress, ref sqlca)
+													if(li_num_exists_items > 0) then
+														bOkToUpdateBoardSpecs = false //already updated
+													end if
+													if(bOkToUpdateBoardSpecs = true) then													
+														if(f_len_ext(ls_sbs_update_sql) > 0) then
+															//
+																execute immediate :ls_sbs_update_sql using sqlca;
+															//
+															if(sqlca.sqlcode <> -1) then
+																//
+																commit using sqlca;
+																//
+															else
+																ls_sql_err_text = sqlca.sqlerrtext
+																//
+																rollback using sqlca;
+																//
+																lb_status.additem(ls_empname + " empno: " + string(ll_empno) + " failed to update sns_board_specs id#=" + string(ll_uid))
+															end if
+														end if
+														end if
+												end if
+											end if
+										next
 									end if
 								end if
 							else

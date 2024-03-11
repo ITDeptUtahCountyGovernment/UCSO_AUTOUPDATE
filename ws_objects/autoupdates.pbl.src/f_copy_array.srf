@@ -1,0 +1,24 @@
+﻿$PBExportHeader$f_copy_array.srf
+global type f_copy_array from function_object
+end type
+
+forward prototypes
+global function integer f_copy_array (ref string lsa_inarray[], ref string lsa_outarray[])
+end prototypes
+
+global function integer f_copy_array (ref string lsa_inarray[], ref string lsa_outarray[]);integer li_return
+integer li_in_size
+integer li_out_size
+li_return = 0
+li_in_size = upperbound(lsa_inarray)
+li_out_size = upperbound(lsa_outarray)
+if(li_out_size >= li_in_size) then
+	integer li_loop
+	for li_loop = 1 to li_in_size
+		lsa_outarray[li_loop] = lsa_inarray[li_loop]
+		li_return++
+	next //li_loop
+end if
+return li_return
+end function
+

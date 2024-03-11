@@ -1,0 +1,38 @@
+﻿$PBExportHeader$f_add_item_to_string_array.srf
+global type f_add_item_to_string_array from function_object
+end type
+
+forward prototypes
+global function integer f_add_item_to_string_array (ref string lsa_array[], string ls_item_to_add)
+end prototypes
+
+global function integer f_add_item_to_string_array (ref string lsa_array[], string ls_item_to_add);integer li_return
+integer li_curr_array_size
+integer li_new_size
+li_return = 0
+li_curr_array_size = upperbound(lsa_array)	
+string lsa_new_array[]
+integer li_allocated_size
+li_new_size = li_curr_array_size + 1
+li_allocated_size = f_allocate_string_array(li_new_size, ref lsa_new_array)
+if(li_allocated_size = li_new_size) then
+	if(li_curr_array_size > 0) then
+		integer li_num_copied
+		li_num_copied = f_copy_array(ref lsa_array, ref lsa_new_array) //copy the passed in array to the new array
+		if(li_num_copied = li_curr_array_size) then
+			li_num_copied++
+			if(li_num_copied >= upperbound(lsa_new_array)) then
+				lsa_new_array[li_num_copied] = ls_item_to_add
+			end if
+		end if
+	else
+		lsa_new_array[1] = ls_item_to_add
+	end if
+end if
+if(upperbound(lsa_new_array) > 0) then
+	lsa_array = lsa_new_array
+	li_return = upperbound(lsa_array)
+end if
+return li_return
+end function
+

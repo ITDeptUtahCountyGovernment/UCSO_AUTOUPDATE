@@ -1,0 +1,29 @@
+﻿$PBExportHeader$f_add_item_to_string_array_ext.srf
+global type f_add_item_to_string_array_ext from function_object
+end type
+
+forward prototypes
+global function integer f_add_item_to_string_array_ext (ref string lsa_array[], string ls_item_to_add, boolean lb_no_dups)
+end prototypes
+
+global function integer f_add_item_to_string_array_ext (ref string lsa_array[], string ls_item_to_add, boolean lb_no_dups);integer li_return
+integer li_curr_array_size
+integer li_new_size
+li_return = 0
+string lsa_new_array[]
+integer li_dup_found
+boolean lb_ok_to_add
+lb_ok_to_add = true
+if(lb_no_dups = true) then
+	li_dup_found = f_does_string_exist_in_str_array(ref lsa_array, ls_item_to_add, true)
+	if(li_dup_found > 0) then
+		lb_ok_to_add = false
+	end if
+end if
+if(lb_ok_to_add = true) then
+	f_add_item_to_string_array(ref lsa_array, ls_item_to_add)
+end if
+li_return = upperbound(lsa_array)
+return li_return
+end function
+

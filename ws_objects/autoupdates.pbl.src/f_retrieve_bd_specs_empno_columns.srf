@@ -1,0 +1,78 @@
+﻿$PBExportHeader$f_retrieve_bd_specs_empno_columns.srf
+global type f_retrieve_bd_specs_empno_columns from function_object
+end type
+
+forward prototypes
+global function integer f_retrieve_bd_specs_empno_columns (long ll_empno, ref string lsa_found_data[], ref transaction tr_sqlca)
+end prototypes
+
+global function integer f_retrieve_bd_specs_empno_columns (long ll_empno, ref string lsa_found_data[], ref transaction tr_sqlca);//prototype: integer li_rtn_value = f_retrieve_bd_specs_empno_columns(ll_empno, ref lsa_round_data, ref tr_sqlca)
+//lsa_found_data[] format
+// [0] = sns_board_specs_id# | empnocolumn#
+// [x] = .....
+//
+integer li_num_rows_found
+li_num_rows_found = 0
+string lsa_null[]
+lsa_found_data = lsa_null
+string ls_empno
+string ls_sql
+ls_empno = string(ll_empno)
+//-----------------------------------------------------
+ls_sql = "select id, empno_001, empno_002, empno_003, empno_004,"
+ls_sql += "empno_005, empno_006, empno_007, empno_008,"
+ls_sql += "empno_009, empno_010, empno_011, empno_012,"
+ls_sql += "empno_013, empno_014, empno_015, empno_016,"
+ls_sql += "empno_017, empno_018, empno_019, empno_020,"
+ls_sql += "empno_021, empno_022, empno_023, empno_024,"
+ls_sql += "empno_025, empno_026, empno_027, empno_028 "
+ls_sql += "from sns_board_specs "
+ls_sql += "where active = 1 "
+ls_sql += "and (empno_001 = " + ls_empno + " or empno_002 = " + ls_empno + " or empno_003 = " + ls_empno + " or empno_004 = " + ls_empno + " "
+ls_sql += "or empno_005 = " + ls_empno + " or empno_006 = " + ls_empno + " or empno_007 = " + ls_empno + " or empno_008 = " + ls_empno + " "
+ls_sql += "or empno_009 = " + ls_empno + " or empno_010 = " + ls_empno + " or empno_011 = " + ls_empno + " or empno_012 = " + ls_empno + " "
+ls_sql += "or empno_013 = " + ls_empno + " or empno_014 = " + ls_empno + " or empno_015 = " + ls_empno + " or empno_016 = " + ls_empno + " "
+ls_sql += "or empno_017 = " + ls_empno + " or empno_018 = " + ls_empno + " or empno_019 = " + ls_empno + " or empno_020 = " + ls_empno + " "
+ls_sql += "or empno_021 = " + ls_empno + " or empno_022 = " + ls_empno + " or empno_023 = " + ls_empno + " or empno_024 = " + ls_empno + " "
+ls_sql += "or empno_025 = " + ls_empno + " or empno_026 = " + ls_empno + " or empno_027 = " + ls_empno + " or empno_028 = " + ls_empno + ")"
+string lsa_temp_data[]
+integer li_num_temp_items
+li_num_temp_items = f_app_ds_populate_string_array_by_sql(ref lsa_temp_data, ls_sql, gi_pad_len, gs_delim, gb_compress, ref tr_sqlca)
+if(li_num_temp_items > 0) then
+	integer li_loop
+	string lsa_parseoutdata[]
+	integer li_num_parse_items
+	string ls_loopdata
+	integer li_cloop
+	string ls_sns_board_specs_id
+	string ls_column_data
+	integer li_column_number
+	string ls_array_line_data
+	for li_loop = 1 to li_num_temp_items
+		ls_loopdata = lsa_temp_data[li_loop]
+		li_num_parse_items = f_parseoutstring_ext(ls_loopdata, gs_delim, ref lsa_parseoutdata)
+		if(li_num_parse_items > 0) then
+			ls_sns_board_specs_id = ""
+			ls_column_data = ""
+			ls_array_line_data = ""
+			for li_cloop = 2 to li_num_temp_items
+				ls_column_data = trim(lsa_parseoutdata[li_cloop])
+				if((IsNull(ls_column_data) = false) and (f_len_ext(ls_column_data) > 0)) then
+					if(ls_column_data = ls_empno) then
+						ls_sns_board_specs_id = lsa_parseoutdata[1]
+						li_column_number = (li_cloop - 1)
+						exit
+					end if
+				end if
+			next
+			if((f_len_ext(ls_sns_board_specs_id) > 0) and (li_column_number > 0)) then
+				ls_array_line_data = ls_sns_board_specs_id + "|" + string(li_column_number)
+				f_add_item_to_string_array_ext(ref lsa_found_data, ls_array_line_data, true)
+			end if
+		end if
+	next
+end if
+li_num_rows_found = UpperBound(lsa_found_data)
+return li_num_rows_found
+end function
+
