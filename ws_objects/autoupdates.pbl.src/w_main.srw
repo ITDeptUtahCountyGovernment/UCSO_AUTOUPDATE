@@ -2,6 +2,12 @@
 forward
 global type w_main from window
 end type
+type sle_num_specs_updated from singlelineedit within w_main
+end type
+type st_18 from statictext within w_main
+end type
+type st_16 from statictext within w_main
+end type
 type st_14 from statictext within w_main
 end type
 type sle_num_errors from singlelineedit within w_main
@@ -60,7 +66,7 @@ end forward
 
 global type w_main from window
 integer width = 2587
-integer height = 3080
+integer height = 3176
 boolean titlebar = true
 string title = "Auto Update Database Support"
 boolean controlmenu = true
@@ -70,6 +76,9 @@ boolean resizable = true
 long backcolor = 67108864
 string icon = "AppIcon!"
 boolean center = true
+sle_num_specs_updated sle_num_specs_updated
+st_18 st_18
+st_16 st_16
 st_14 st_14
 sle_num_errors sle_num_errors
 st_13 st_13
@@ -111,6 +120,9 @@ integer gi_rowid
 end variables
 
 on w_main.create
+this.sle_num_specs_updated=create sle_num_specs_updated
+this.st_18=create st_18
+this.st_16=create st_16
 this.st_14=create st_14
 this.sle_num_errors=create sle_num_errors
 this.st_13=create st_13
@@ -138,7 +150,10 @@ this.st_2=create st_2
 this.sle_interval=create sle_interval
 this.st_1=create st_1
 this.pb_close=create pb_close
-this.Control[]={this.st_14,&
+this.Control[]={this.sle_num_specs_updated,&
+this.st_18,&
+this.st_16,&
+this.st_14,&
 this.sle_num_errors,&
 this.st_13,&
 this.st_12,&
@@ -168,6 +183,9 @@ this.pb_close}
 end on
 
 on w_main.destroy
+destroy(this.sle_num_specs_updated)
+destroy(this.st_18)
+destroy(this.st_16)
 destroy(this.st_14)
 destroy(this.sle_num_errors)
 destroy(this.st_13)
@@ -378,6 +396,7 @@ if(gb_stoprunning = false) then
 			string ls_dob
 			string ls_empname
 			integer li_num_updated
+			integer li_num_specs_updated
 			integer li_num_errors
 			string ls_format
 			string ls_month
@@ -429,6 +448,7 @@ if(gb_stoprunning = false) then
 			string ls_sbs_update_sql			
 			//---------------------
 			li_num_updated = 0
+			li_num_specs_updated = 0
 			li_num_errors = 0
 			dec_temp_bd_span_from = gdec_bd_span_from
 			dec_temp_bd_span_to = gdec_bd_span_to		
@@ -475,7 +495,6 @@ if(gb_stoprunning = false) then
 					if(ll_empno > 0) then
 						if(ll_empno = 15378) then 
 							//2/21
-							
 							li_stop = 0
 						elseif(ll_empno = 18091) then
 							//2/22
@@ -664,7 +683,17 @@ if(gb_stoprunning = false) then
 													//
 													li_num_exists_items = f_app_ds_populate_string_array_by_sql(ref lsa_exists, ls_update_sbs_sql_check, gi_pad_len, gs_delim, gb_compress, ref sqlca)
 													if(li_num_exists_items > 0) then
-														bOkToUpdateBoardSpecs = false //already updated
+														integer li_epos
+														li_epos = pos(lsa_exists[1], gs_delim)
+														if(li_epos > 0) then
+															string ls_temp_data
+															ls_temp_data = trim(mid(lsa_exists[1], (li_epos + 1)))
+															if((IsNull(ls_temp_data) = true) or (ls_temp_data = "") or (ls_temp_data = gs_delim)) then
+																bOkToUpdateBoardSpecs = true
+															else
+																bOkToUpdateBoardSpecs = false
+															end if
+														end if
 													end if
 													if(bOkToUpdateBoardSpecs = true) then													
 														if(f_len_ext(ls_sbs_update_sql) > 0) then
@@ -675,6 +704,7 @@ if(gb_stoprunning = false) then
 																//
 																commit using sqlca;
 																//
+																li_num_specs_updated++
 															else
 																ls_sql_err_text = sqlca.sqlerrtext
 																//
@@ -699,6 +729,7 @@ if(gb_stoprunning = false) then
 				end if
 				sle_num_processed.text = string(li_loop)
 				sle_num_updated.text = string(li_num_updated)
+				sle_num_specs_updated.text = string(li_num_specs_updated)
 				sle_num_errors.text = string(li_num_errors)
 				Yield()
 			next
@@ -756,6 +787,58 @@ event close;Timer(0)
 Close(w_main)
 end event
 
+type sle_num_specs_updated from singlelineedit within w_main
+integer x = 2217
+integer y = 600
+integer width = 288
+integer height = 100
+integer taborder = 30
+integer textsize = -10
+integer weight = 400
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+string text = "0"
+borderstyle borderstyle = stylelowered!
+end type
+
+type st_18 from statictext within w_main
+integer x = 1751
+integer y = 612
+integer width = 453
+integer height = 64
+integer textsize = -8
+integer weight = 700
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+long textcolor = 33488896
+long backcolor = 67108864
+string text = "#Specs Updated:"
+alignment alignment = right!
+boolean focusrectangle = false
+end type
+
+type st_16 from statictext within w_main
+integer x = 1111
+integer y = 512
+integer width = 315
+integer height = 64
+integer textsize = -8
+integer weight = 700
+fontcharset fontcharset = ansi!
+fontpitch fontpitch = variable!
+fontfamily fontfamily = swiss!
+string facename = "Tahoma"
+long textcolor = 33488896
+long backcolor = 67108864
+string text = "To Process:"
+alignment alignment = right!
+boolean focusrectangle = false
+end type
+
 type st_14 from statictext within w_main
 integer x = 2048
 integer y = 24
@@ -774,8 +857,8 @@ boolean focusrectangle = false
 end type
 
 type sle_num_errors from singlelineedit within w_main
-integer x = 2130
-integer y = 600
+integer x = 379
+integer y = 2964
 integer width = 288
 integer height = 100
 integer taborder = 30
@@ -791,8 +874,8 @@ borderstyle borderstyle = stylelowered!
 end type
 
 type st_13 from statictext within w_main
-integer x = 1783
-integer y = 616
+integer x = 32
+integer y = 2980
 integer width = 338
 integer height = 64
 integer textsize = -10
@@ -809,11 +892,11 @@ boolean focusrectangle = false
 end type
 
 type st_12 from statictext within w_main
-integer x = 1088
+integer x = 1019
 integer y = 616
-integer width = 338
+integer width = 407
 integer height = 64
-integer textsize = -10
+integer textsize = -8
 integer weight = 700
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -821,7 +904,7 @@ fontfamily fontfamily = swiss!
 string facename = "Tahoma"
 long textcolor = 33488896
 long backcolor = 67108864
-string text = "#Updated:"
+string text = "#Emp Updated:"
 alignment alignment = right!
 boolean focusrectangle = false
 end type
@@ -843,11 +926,11 @@ borderstyle borderstyle = stylelowered!
 end type
 
 type st_11 from statictext within w_main
-integer x = 1755
-integer y = 516
+integer x = 1838
+integer y = 512
 integer width = 370
 integer height = 64
-integer textsize = -10
+integer textsize = -8
 integer weight = 700
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!
@@ -861,8 +944,8 @@ boolean focusrectangle = false
 end type
 
 type sle_num_processed from singlelineedit within w_main
-integer x = 2135
-integer y = 500
+integer x = 2217
+integer y = 492
 integer width = 288
 integer height = 100
 integer taborder = 20
@@ -877,11 +960,11 @@ borderstyle borderstyle = stylelowered!
 end type
 
 type st_10 from statictext within w_main
-integer x = 1065
+integer x = 1111
 integer y = 512
-integer width = 361
+integer width = 315
 integer height = 64
-integer textsize = -10
+integer textsize = -8
 integer weight = 700
 fontcharset fontcharset = ansi!
 fontpitch fontpitch = variable!

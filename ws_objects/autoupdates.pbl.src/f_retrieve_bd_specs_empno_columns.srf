@@ -51,11 +51,11 @@ if(li_num_temp_items > 0) then
 	for li_loop = 1 to li_num_temp_items
 		ls_loopdata = lsa_temp_data[li_loop]
 		li_num_parse_items = f_parseoutstring_ext(ls_loopdata, gs_delim, ref lsa_parseoutdata)
-		if(li_num_parse_items > 0) then
+		if(li_num_parse_items >= 29) then
 			ls_sns_board_specs_id = ""
 			ls_column_data = ""
 			ls_array_line_data = ""
-			for li_cloop = 2 to li_num_temp_items
+			for li_cloop = 2 to li_num_parse_items
 				ls_column_data = trim(lsa_parseoutdata[li_cloop])
 				if((IsNull(ls_column_data) = false) and (f_len_ext(ls_column_data) > 0)) then
 					if(ls_column_data = ls_empno) then
